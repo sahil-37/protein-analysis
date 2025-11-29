@@ -173,7 +173,8 @@ class ProteinReportGenerator:
             'Acetylation', 'Amidation', 'GPI-anchor', 'Ubiquitination',
             'Sumoylation', 'Nitrosylation', 'S-nitrosylation', 'Neddylation',
             'Disulfide bond', 'Proteolytic cleavage', 'Signal peptide',
-            'Propeptide', 'Transit peptide'
+            'Propeptide', 'Transit peptide', 'Cross-link', 'Hydroxylation',
+            'ADP-ribosylation', 'Farnesylation', 'Palmitoylation'
         }
 
         for feature in features_list:
@@ -268,6 +269,27 @@ class ProteinReportGenerator:
             'Signal peptide': 'SIGNAL',
             'Propeptide': 'PROPEP',
             'Transmembrane': 'TRANSMEM',
+            'Cross-link': 'CROSSLNK',
+            'Alternative sequence': 'ALT_SEQ',
+            'Motif': 'MOTIF',
+            'Compositional bias': 'COMPBIAS',
+            'Splice variant': 'SPLICEVAR',
+            'Topological domain': 'TOPO_DOM',
+            'Hydrophobic region': 'HYDROPHOBIC',
+            'Coiled-coil': 'COIL_COIL',
+            'Acetylation': 'ACETYL',
+            'Phosphorylation': 'PHOSPHO',
+            'Ubiquitination': 'UBIQUIT',
+            'Sumoylation': 'SUMO',
+            'S-nitrosylation': 'NITRO',
+            'N-linked glycosylation': 'CARBOHYD',
+            'O-linked glycosylation': 'CARBOHYD',
+            'Hydroxylation': 'HYDROXY',
+            'ADP-ribosylation': 'ADPRIB',
+            'Farnesylation': 'FARNESL',
+            'Palmitoylation': 'PALMI',
+            'GPI-anchor': 'GPI',
+            'Neddylation': 'NEDDYL',
         }
 
         enhanced = []
