@@ -61,7 +61,29 @@ class ProteinReportGenerator:
         # 3. Analyze biophysical properties
         print(f"   🧮 Calculating biophysical properties...")
         analyzer = ProteinAnalyzer(sequence)
-        properties = analyzer.get_all_properties()
+        raw_properties = analyzer.get_all_properties()
+
+        # Transform property keys to match template expectations
+        helix = raw_properties['helix_predicted']
+        turn = raw_properties['turn_predicted']
+        sheet = raw_properties['sheet_predicted']
+        # Calculate coil to ensure sum is 100 (handle floating point rounding)
+        coil = max(0, 100 - (helix + turn + sheet))
+
+        properties = {
+            'molecular_weight': raw_properties['molecular_weight_kda'],
+            'isoelectric_point': raw_properties['isoelectric_point'],
+            'gravy_score': raw_properties['gravy_score'],
+            'aromaticity': raw_properties['aromaticity_percent'],
+            'instability_index': raw_properties['instability_index'],
+            'cysteine_count': raw_properties['cysteine_count'],
+            'extinction_coeff_reduced': raw_properties['extinction_coeff_reduced'],
+            'extinction_coeff_oxidized': raw_properties['extinction_coeff_oxidized'],
+            'helix_predicted': helix,
+            'turn_predicted': turn,
+            'sheet_predicted': sheet,
+            'coil_predicted': coil,
+        }
         print(f"   ✅ Calculated properties")
 
         # 4. Generate charge profile
@@ -304,12 +326,24 @@ class ProteinReportGenerator:
         """Generate ProtParam table HTML."""
         return f"""
         <table class="properties-table">
-            <tr><td>Molecular Weight</td><td>{data.get('molecular_weight', 0):.2f} Da</td></tr>
-            <tr><td>Isoelectric Point</td><td>{data.get('isoelectric_point', 0):.2f}</td></tr>
-            <tr><td>GRAVY Score</td><td>{data.get('gravy_score', 0):.4f}</td></tr>
-            <tr><td>Aromaticity</td><td>{data.get('aromaticity', 0):.4f}</td></tr>
-            <tr><td>Instability Index</td><td>{data.get('instability_index', 0):.2f}</td></tr>
-            <tr><td>Cysteine Count</td><td>{data.get('cysteine_count', 0)}</td></tr>
+            <thead>
+                <tr>
+                    <th colspan="2">Biophysical Properties</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Molecular Weight</td><td>{data.get('molecular_weight', 0):.2f} kDa</td></tr>
+                <tr><td>Isoelectric Point (pI)</td><td>{data.get('isoelectric_point', 0):.2f}</td></tr>
+                <tr><td>GRAVY Score</td><td>{data.get('gravy_score', 0):.4f}</td></tr>
+                <tr><td>Aromaticity</td><td>{data.get('aromaticity', 0):.4f}%</td></tr>
+                <tr><td>Instability Index</td><td>{data.get('instability_index', 0):.2f}</td></tr>
+                <tr><td>Cysteine Count</td><td>{data.get('cysteine_count', 0)}</td></tr>
+                <tr><td colspan="2" style="padding-top: 12px; font-weight: 600; border-top: 2px solid #e5e7eb;">Secondary Structure (Predicted)</td></tr>
+                <tr><td>α-Helix</td><td>{data.get('helix_predicted', 0):.2f}%</td></tr>
+                <tr><td>β-Sheet</td><td>{data.get('sheet_predicted', 0):.2f}%</td></tr>
+                <tr><td>β-Turn</td><td>{data.get('turn_predicted', 0):.2f}%</td></tr>
+                <tr><td>Coil</td><td>{data.get('coil_predicted', 0):.2f}%</td></tr>
+            </tbody>
         </table>
         """
 
