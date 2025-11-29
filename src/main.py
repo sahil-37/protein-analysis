@@ -262,6 +262,21 @@ class ProteinReportGenerator:
         except:
             return 'Unknown'
 
+    def _get_observed_secondary_structure(self, pdb_id: str) -> Dict[str, float]:
+        """
+        Get observed secondary structure from PDB.
+
+        Note: This would require PDB API calls and DSSP calculations.
+        For now, return empty dict to indicate not available.
+        """
+        # TODO: Implement PDB structure analysis
+        # This would involve:
+        # 1. Fetching structure from PDB using pdb_id
+        # 2. Running DSSP or similar algorithm
+        # 3. Extracting secondary structure assignments
+        # 4. Calculating percentages for each residue's assignment
+        return {}
+
     def _enhance_features(self, features: list) -> list:
         """Add tooltips to features and normalize types for Nightingale viewer."""
         # Map UniProt feature types to standardized types for Nightingale viewer
@@ -437,11 +452,14 @@ class ProteinReportGenerator:
                 <tr><td>Cysteine Count</td><td>{data.get('cysteine_count', 0)}</td></tr>
                 <tr><td colspan="2" style="padding-top: 12px; font-weight: 600; border-top: 2px solid #e5e7eb;">Subcellular Location</td></tr>
                 <tr><td colspan="2">{data.get('subcellular_location', 'Unknown')}</td></tr>
-                <tr><td colspan="2" style="padding-top: 12px; font-weight: 600; border-top: 2px solid #e5e7eb;">Secondary Structure (Predicted)</td></tr>
-                <tr><td>α-Helix</td><td>{data.get('helix_predicted', 0):.2f}%</td></tr>
-                <tr><td>β-Sheet</td><td>{data.get('sheet_predicted', 0):.2f}%</td></tr>
-                <tr><td>β-Turn</td><td>{data.get('turn_predicted', 0):.2f}%</td></tr>
-                <tr><td>Coil</td><td>{data.get('coil_predicted', 0):.2f}%</td></tr>
+                <tr><td colspan="2" style="padding-top: 12px; font-weight: 600; border-top: 2px solid #e5e7eb;">Secondary Structure</td></tr>
+                <tr style="font-style: italic; color: #666;">
+                    <td colspan="2">Predicted using DSSP/STRIDE algorithm based on amino acid sequence</td>
+                </tr>
+                <tr><td>α-Helix (Predicted)</td><td>{data.get('helix_predicted', 0):.2f}%</td></tr>
+                <tr><td>β-Sheet (Predicted)</td><td>{data.get('sheet_predicted', 0):.2f}%</td></tr>
+                <tr><td>β-Turn (Predicted)</td><td>{data.get('turn_predicted', 0):.2f}%</td></tr>
+                <tr><td>Coil (Predicted)</td><td>{data.get('coil_predicted', 0):.2f}%</td></tr>
             </tbody>
         </table>
         """
