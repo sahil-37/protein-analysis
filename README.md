@@ -1,422 +1,368 @@
-# UniProt Lookup & Database Storage
+# UniProt Lookup - Protein Analysis & Report Generation
 
-This module fetches protein data from the UniProt REST API and stores it in a relational database with a normalized schema.
+A modular Python application for comprehensive protein analysis using UniProt data, biophysical calculations, and interactive HTML report generation.
 
-**Database Options:**
-- **SQLite** (default) - Zero configuration, perfect for development and small-scale use
-- **PostgreSQL** (optional) - For production and large-scale deployments
+**Version**: 2.0 | **Status**: Production Ready ✓ | **Size**: ~186 KB
 
-## Features
+---
 
-### UniProt Data Fetching & Storage
-- **Fetch protein data** from UniProt API by accession ID
-- **Zero-setup option** - Uses SQLite by default (no database installation needed!)
-- **Flatten complex JSON** into relational database tables
-- **Comprehensive schema** covering:
-  - Main protein information
-  - Gene names and synonyms
-  - Protein features (domains, sites, regions)
-  - Comments (function, catalytic activity, etc.)
-  - Cross-references to other databases
-  - Gene Ontology (GO) terms
-  - Keywords
-  - Publications/References
-- **Batch processing** support for multiple proteins
-- **Error handling** with retries and rate limiting
-- **Idempotent operations** - safe to re-run
-
-### Protein Design Analysis (NEW!)
-- **Isoelectric Point (pI) calculation** using Henderson-Hasselbalch equation
-- **Secondary structure prediction** using Chou-Fasman algorithm
-- **Net charge calculation** at any specified pH
-- **Expression & purification recommendations**:
-  - Ion-exchange chromatography strategy (cation vs anion)
-  - Optimal buffer pH ranges
-  - Solubility and aggregation risk assessment
-  - Fusion tag recommendations (His, GST, MBP, NusA)
-  - Temperature and growth media suggestions
-  - E. coli strain recommendations
-  - Protein refolding strategies if needed
-
-## Project Structure
-
-```
-uniprot_lookup/
-├── main.py                         # Main orchestration module
-├── uniprot_client.py               # UniProt API client
-├── data_processor.py               # JSON flattening logic
-├── database.py                     # PostgreSQL database handler
-├── database_sqlite.py              # SQLite database handler (default)
-├── protein_design_analyzer.py      # Protein design & analysis tool (NEW!)
-├── schema.sql                      # PostgreSQL schema definition
-├── requirements.txt                # Python dependencies
-├── .env.example                    # Example environment configuration
-├── QUICKSTART.md                   # Quick start guide for UniProt lookup
-├── PROTEIN_DESIGN_QUICKSTART.md    # Quick start for protein design analyzer
-├── PROTEIN_DESIGN_GUIDE.md         # Detailed guide for protein design
-├── README.md                       # This file
-└── VISUALIZATION_GUIDE.md          # Guide for data visualization
-```
-
-## Quick Start (SQLite - No Setup Required!)
+## 🚀 Quick Start (30 seconds)
 
 ```bash
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Initialize database
-python main.py --init
+# 2. Generate a report
+python -m src.main P69905
 
-# 3. Fetch a protein
-python main.py P12345
+# 3. View the report
+open report_P69905.html
 ```
 
-That's it! The data is now stored in `uniprot.db`.
+Done! You now have a comprehensive protein analysis report.
 
-See [QUICKSTART.md](QUICKSTART.md) for more examples and queries.
+---
 
-## Full Installation Guide
+## 📚 Documentation
 
-### Option 1: SQLite (Default - Recommended for Getting Started)
+Choose your path based on what you need:
 
-1. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### For New Users
+**Start here**: [README_COMPREHENSIVE.md](README_COMPREHENSIVE.md)
+- Overview of features
+- Installation guide
+- Complete API reference
+- Examples and best practices
 
-2. **Initialize Database**
-   ```bash
-   python main.py --init
-   ```
+### For Generating Reports
+**Go here**: [REPORT_GENERATION_GUIDE.md](REPORT_GENERATION_GUIDE.md)
+- Command-line usage
+- Python API examples
+- Report customization
+- Troubleshooting
 
-3. **Start Using**
-   ```bash
-   python main.py P04637
-   ```
+### For Technical Details
+**Check here**: [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)
+- File organization
+- Module descriptions
+- Dependency graph
+- Configuration guide
 
-### Option 2: PostgreSQL (For Production Use)
+---
 
-1. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+## ✨ Features
 
-2. **Set Up PostgreSQL Database**
-   ```bash
-   createdb uniprot_db
-   ```
+✓ **UniProt Data Fetching** - Sequence, metadata, features, annotations
+✓ **Biophysical Analysis** - MW, pI, GRAVY, instability index, secondary structure
+✓ **PTM Analysis** - Post-translational modifications with visualization
+✓ **Database Storage** - SQLite with 18 normalized tables
+✓ **Interactive Reports** - Professional HTML with Nightingale viewer
+✓ **Batch Processing** - Generate multiple reports at once
+✓ **CLI & Python API** - Use from command line or import as library
 
-3. **Configure Environment**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your PostgreSQL credentials
-   ```
+---
 
-4. **Initialize Database Schema**
-   ```bash
-   python main.py --init
-   ```
+## 📋 Project Structure
 
-## Usage
+```
+uniprot_lookup/
+├── src/                              # Application code
+│   ├── config.py                     # Configuration
+│   ├── api_client.py                 # API interactions
+│   ├── protein_analyzer.py           # Biophysical analysis
+│   ├── data_manager.py               # Data management
+│   ├── main.py                       # Entry point
+│   └── services/
+│       ├── protein_database.py       # Database operations
+│       ├── protein_enrichment_service.py
+│       └── uniprot_metadata_extractor.py
+│
+├── data/                             # Database schema
+│   └── database_schema.sql
+│
+├── templates/                        # HTML templates
+│   └── offline_template.html
+│
+├── README_COMPREHENSIVE.md           # Complete guide
+├── REPORT_GENERATION_GUIDE.md        # Report generation
+├── PROJECT_STRUCTURE.md              # Technical details
+├── requirements.txt                  # Dependencies
+└── .env.example                      # Configuration template
+```
 
-### Command Line
+---
 
-#### Fetch a single protein:
+## 🎯 Common Tasks
+
+### Generate Report for Single Protein
 
 ```bash
-python main.py P12345
+python -m src.main P69905
 ```
 
-#### Fetch multiple proteins:
+### Generate Reports for Multiple Proteins
 
 ```bash
-python main.py P12345 Q9Y6K9 P04637
+python -m src.main P69905 P04637 P01308
 ```
 
-### As a Python Library
+### Use as Python Library
 
 ```python
-from main import fetch_and_save_protein, fetch_and_save_multiple_proteins
+from src.main import ProteinReportGenerator
 
-# Fetch and save a single protein
-success = fetch_and_save_protein('P12345')
-
-# Fetch and save multiple proteins
-accessions = ['P12345', 'Q9Y6K9', 'P04637']
-results = fetch_and_save_multiple_proteins(accessions)
-
-print(f"Successful: {results['successful']}")
-print(f"Failed: {results['failed']}")
+gen = ProteinReportGenerator()
+gen.generate_report('P69905')
 ```
 
-### Custom Database Configuration
-
-```python
-from main import fetch_and_save_protein
-
-db_config = {
-    'host': 'localhost',
-    'port': '5432',
-    'dbname': 'my_database',
-    'user': 'my_user',
-    'password': 'my_password'
-}
-
-fetch_and_save_protein('P12345', db_config=db_config)
-```
-
-### Using Individual Components
-
-#### Fetch data from UniProt API:
-
-```python
-from uniprot_client import UniProtClient
-
-client = UniProtClient()
-protein_data = client.fetch_protein('P12345')
-```
-
-#### Process and flatten JSON data:
-
-```python
-from data_processor import UniProtDataProcessor
-
-processor = UniProtDataProcessor(protein_data)
-flattened = processor.get_all_flattened_data()
-
-# Access specific data
-print(flattened['protein'])          # Main protein info
-print(flattened['features'])         # Protein features
-print(flattened['go_terms'])         # GO terms
-```
-
-#### Save to database:
-
-```python
-from database import UniProtDatabase
-
-with UniProtDatabase() as db:
-    db.save_protein(flattened)
-```
-
-## Database Schema
-
-The database consists of 10 main tables:
-
-1. **proteins** - Main protein information
-2. **protein_secondary_accessions** - Alternative accession IDs
-3. **protein_genes** - Gene names and synonyms
-4. **protein_names** - Protein names (recommended, alternative, short)
-5. **protein_features** - Sequence features (domains, sites, etc.)
-6. **protein_comments** - Functional annotations
-7. **protein_cross_references** - Links to other databases
-8. **protein_keywords** - Keywords
-9. **protein_go_terms** - Gene Ontology annotations
-10. **protein_references** - Publications
-
-### Example Queries
-
-```sql
--- Get all proteins for a specific organism
-SELECT accession, protein_recommended_name, gene_name
-FROM proteins
-WHERE organism_taxon_id = 9606;  -- Human
-
--- Get all GO terms for a protein
-SELECT go_id, go_term, go_aspect
-FROM protein_go_terms
-WHERE accession = 'P12345';
-
--- Find proteins with specific features
-SELECT DISTINCT p.accession, p.protein_recommended_name
-FROM proteins p
-JOIN protein_features f ON p.accession = f.accession
-WHERE f.feature_type = 'Domain';
-
--- Get all cross-references to PDB
-SELECT accession, database_id
-FROM protein_cross_references
-WHERE database_name = 'PDB';
-```
-
-## API Reference
-
-### UniProtClient
-
-```python
-client = UniProtClient(max_retries=3, retry_delay=2)
-
-# Fetch single protein
-data = client.fetch_protein('P12345')
-
-# Fetch multiple proteins
-results = client.fetch_multiple_proteins(['P12345', 'Q9Y6K9'])
-```
-
-### UniProtDataProcessor
-
-```python
-processor = UniProtDataProcessor(uniprot_json_data)
-
-# Get all flattened data
-all_data = processor.get_all_flattened_data()
-
-# Or get specific sections
-protein_info = processor.get_main_protein_data()
-features = processor.get_features()
-go_terms = processor.get_go_terms()
-```
-
-### UniProtDatabase
-
-```python
-# Using context manager (recommended)
-with UniProtDatabase() as db:
-    db.save_protein(flattened_data)
-    exists = db.protein_exists('P12345')
-    protein = db.get_protein('P12345')
-
-# Manual connection management
-db = UniProtDatabase()
-db.connect()
-db.save_protein(flattened_data)
-db.disconnect()
-```
-
-## Error Handling
-
-The module includes comprehensive error handling:
-
-- **Network errors**: Automatic retries with exponential backoff
-- **Rate limiting**: Respects API rate limits with delays
-- **Database errors**: Transaction rollback on failures
-- **Missing data**: Graceful handling of optional fields
-
-## Examples
-
-### Example 1: Fetch Human TP53 (tumor suppressor p53)
+### Query Database
 
 ```bash
-python main.py P04637
+sqlite3 protein_reports.db "SELECT accession_id, protein_name FROM proteins;"
 ```
 
-### Example 2: Batch Processing
+---
+
+## 🔧 Installation
+
+### Prerequisites
+- Python 3.8+
+- pip
+
+### Steps
+
+```bash
+# Clone/navigate to project
+cd uniprot_lookup
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Verify installation
+python3 -c "from src.config import *; from src.api_client import APIClient; print('✓ Ready!')"
+```
+
+---
+
+## 📖 API Quick Reference
+
+### Generate Reports
 
 ```python
-from main import fetch_and_save_multiple_proteins
+from src.main import ProteinReportGenerator
 
-# Fetch multiple cancer-related proteins
-cancer_proteins = [
-    'P04637',  # TP53
-    'P01112',  # KRAS
-    'P42336',  # PIK3CA
-    'Q9Y6K9',  # NF2
-]
-
-results = fetch_and_save_multiple_proteins(cancer_proteins)
+gen = ProteinReportGenerator()
+gen.generate_report('P69905')              # Single protein
+gen.generate_batch_reports(['P04637', 'P15018'])  # Batch
 ```
 
-### Example 3: Check if Protein Exists Before Fetching
+### Fetch Data
 
 ```python
-from database import UniProtDatabase
-from main import fetch_and_save_protein
+from src.api_client import APIClient
 
-with UniProtDatabase() as db:
-    if not db.protein_exists('P12345'):
-        fetch_and_save_protein('P12345', skip_if_exists=False)
+client = APIClient()
+sequence = client.fetch_protein_sequence('P69905')
+entry = client.fetch_uniprot_entry('P69905')
+all_data = client.fetch_all_protein_data('P69905')
 ```
 
-## Troubleshooting
-
-### Database Connection Errors
-
-Ensure PostgreSQL is running and credentials in `.env` are correct:
-
-```bash
-psql -U postgres -d uniprot_db -c "SELECT 1;"
-```
-
-### API Rate Limiting
-
-If you encounter rate limiting, increase the retry delay:
+### Analyze Proteins
 
 ```python
-client = UniProtClient(max_retries=5, retry_delay=5)
+from src.protein_analyzer import ProteinAnalyzer
+
+analyzer = ProteinAnalyzer(sequence)
+properties = analyzer.get_all_properties()
+print(f"MW: {properties['molecular_weight']} Da")
+print(f"pI: {properties['isoelectric_point']}")
 ```
 
-### Missing Dependencies
+### Store & Retrieve
 
-Reinstall dependencies:
+```python
+from src.data_manager import DataManager
+
+dm = DataManager()
+dm.save_protein(data)
+protein = dm.get_protein('P69905')
+all_proteins = dm.list_proteins()
+```
+
+---
+
+## 📊 Database
+
+- **Type**: SQLite
+- **File**: `protein_reports.db`
+- **Tables**: 18 normalized tables
+- **Size**: Typical ~100 KB per 100 proteins
+
+**Includes:**
+- Biophysical properties (MW, pI, GRAVY, etc.)
+- Secondary structure predictions
+- Charge profiles (pH-dependent)
+- PTM information
+- UniProt metadata
+
+---
+
+## 🐛 Troubleshooting
+
+### "ModuleNotFoundError: No module named 'src'"
+```bash
+# Make sure you're running from project root
+cd uniprot_lookup
+python -m src.main P69905
+```
+
+### "Failed to fetch protein data"
+```bash
+# Verify accession ID (e.g., P69905, P04637)
+# Check internet connection
+# Try a known ID: P04637 (p53)
+```
+
+### "BioPython not installed"
+```bash
+pip install biopython --upgrade
+```
+
+See [REPORT_GENERATION_GUIDE.md](REPORT_GENERATION_GUIDE.md#troubleshooting) for more solutions.
+
+---
+
+## 📚 Documentation Guide
+
+| Document | Purpose | When to Use |
+|----------|---------|------------|
+| **README_COMPREHENSIVE.md** | Complete guide with everything | First time setup, API reference |
+| **REPORT_GENERATION_GUIDE.md** | Report generation focused | Generating reports, examples |
+| **PROJECT_STRUCTURE.md** | Technical architecture | Understanding code structure |
+
+---
+
+## 💡 Examples
+
+### Example 1: Hemoglobin Analysis
 
 ```bash
-pip install -r requirements.txt --upgrade
+python -m src.main P69905
+open report_P69905.html
 ```
 
-## License
+### Example 2: Batch Analysis
 
-MIT License
+```python
+from src.main import ProteinReportGenerator
 
-## Contributing
+proteins = ['P69905', 'P04637', 'P01308']  # Hemoglobin, p53, Insulin
+gen = ProteinReportGenerator()
 
-Contributions welcome! Please submit issues and pull requests.
+for protein_id in proteins:
+    gen.generate_report(protein_id)
+    print(f"✓ {protein_id}")
+```
 
-## Protein Design Analysis
+### Example 3: Custom Analysis
 
-The `protein_design_analyzer.py` tool provides biophysical analysis for protein expression optimization.
+```python
+from src.api_client import APIClient
+from src.protein_analyzer import ProteinAnalyzer
 
-### Quick Start
+client = APIClient()
+sequence = client.fetch_protein_sequence('P69905')
+
+analyzer = ProteinAnalyzer(sequence)
+print(f"Sequence: {sequence}")
+print(f"Length: {len(sequence)} aa")
+print(f"MW: {analyzer.get_molecular_weight():.2f} Da")
+print(f"pI: {analyzer.get_isoelectric_point():.2f}")
+print(f"Stability: {analyzer.is_stable()}")
+```
+
+---
+
+## 📦 Dependencies
+
+- `requests` - HTTP API calls
+- `biopython` - Biophysical calculations
+- `jinja2` - Template rendering (optional)
+
+Install all with:
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 🎓 Learning Path
+
+**Beginner**:
+1. Read this README
+2. Run quick start: `python -m src.main P69905`
+3. Check [README_COMPREHENSIVE.md](README_COMPREHENSIVE.md#quick-start)
+
+**Intermediate**:
+1. Follow [REPORT_GENERATION_GUIDE.md](REPORT_GENERATION_GUIDE.md)
+2. Try Python API examples
+3. Generate batch reports
+
+**Advanced**:
+1. Study [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)
+2. Customize templates and modules
+3. Extend with new features
+
+---
+
+## 🤝 Contributing
+
+Areas for enhancement:
+- Additional PTM prediction models
+- Performance optimization
+- Additional visualization options
+- Unit tests
+
+---
+
+## 📝 License
+
+MIT License - Free to use and modify
+
+---
+
+## 🆘 Support
+
+**Need help?**
+1. Check the relevant documentation guide above
+2. Review [REPORT_GENERATION_GUIDE.md#troubleshooting](REPORT_GENERATION_GUIDE.md#troubleshooting)
+3. Check Python API in [README_COMPREHENSIVE.md](README_COMPREHENSIVE.md#api-reference)
+
+**Still stuck?**
+- Verify installation: `python3 -c "from src.config import *; print('✓')"`
+- Check internet connection for UniProt API access
+- Ensure Python 3.8+ is installed
+
+---
+
+## ⚡ Quick Commands
 
 ```bash
-# Analyze a protein
-python protein_design_analyzer.py P04637
+# Generate single report
+python -m src.main P69905
 
-# With options
-python protein_design_analyzer.py P04637 --ph 7.4 --pka-table lehninger --show-ss-string
+# Generate multiple reports
+python -m src.main P69905 P04637 P01308
+
+# Check stored proteins
+sqlite3 protein_reports.db "SELECT accession_id, protein_name FROM proteins;"
+
+# Verify setup
+python3 -c "from src.config import *; from src.api_client import APIClient; print('✓')"
 ```
 
-### Features
+---
 
-- **Isoelectric Point (pI)**: Calculates protein charge at zero using Henderson-Hasselbalch equation
-- **Secondary Structure**: Predicts % helix, % sheet, % coil using Chou-Fasman algorithm
-- **Net Charge**: Calculates protein charge at any specified pH
-- **Design Suggestions**: Automatic recommendations for expression and purification
+**Happy analyzing! 🧬**
 
-### Documentation
-
-- [PROTEIN_DESIGN_QUICKSTART.md](PROTEIN_DESIGN_QUICKSTART.md) - Quick reference
-- [PROTEIN_DESIGN_GUIDE.md](PROTEIN_DESIGN_GUIDE.md) - Comprehensive guide with theory and examples
-
-### Example
-
-```bash
-$ python protein_design_analyzer.py P04637 --ph 7.4
-
-Accession ID:           P04637
-Protein Name:           Cellular tumor antigen p53
-Protein Length:         393 amino acids
-Isoelectric Point (pI):  6.37
-Net Charge at pH 7.4:    -4.69
-
-SECONDARY STRUCTURE:
-  α-helix:    32.3%
-  β-sheet:    23.9%
-  Coil:       43.8%
-
-DESIGN SUGGESTIONS:
-  → Use CATION EXCHANGE chromatography
-  → Bind at pH 6.5-7.5, elute with 0.1-0.3 M NaCl
-  → Good solubility expected (high coil content)
-  → Consider His-tag or MBP-tag for purification
-```
-
-## References
-
-### UniProt Lookup
-- [UniProt REST API Documentation](https://www.uniprot.org/help/api)
-- [UniProt Data Structure](https://www.uniprot.org/help/uniprotkb)
-
-### Protein Design Analysis
-- **Henderson-Hasselbalch**: Hasselbalch, K. A. (1917)
-- **Chou-Fasman**: Chou, P. Y., & Fasman, G. D. (1978). Empirical predictions of protein conformation
-- **pKa Values**: EMBOSS and Lehninger Principles of Biochemistry
+Start with: [README_COMPREHENSIVE.md](README_COMPREHENSIVE.md)

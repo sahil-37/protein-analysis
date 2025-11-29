@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protein Report: P69905</title>
+    
+    <script type="importmap">
+    {
+      "imports": {
+        "@nightingale-elements/": "https://cdn.jsdelivr.net/npm/@nightingale-elements/"
+      }
+    }
+    </script>
+
+    <!-- Chart.js for charge profile visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --primary-600: #4F46E5;
+            --primary-700: #4338CA;
+            --primary-50: #EEF2FF;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-900: #111827;
+            --success-500: #10B981;
+            --warning-500: #F59E0B;
+            --error-500: #EF4444;
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 0.75rem;
+            --space-4: 1rem;
+            --space-6: 1.5rem;
+            --space-8: 2rem;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            --font-mono: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--gray-900);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: var(--space-8);
+        }
+        
+        .page-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .report-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+            color: white;
+            padding: var(--space-8);
+        }
+        
+        .header-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--space-2);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .protein-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+        
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            padding: var(--space-6);
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .stat-card {
+            background: white;
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-600);
+            margin-bottom: var(--space-2);
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        
+        .stat-unit {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 400;
+            margin-left: var(--space-1);
+        }
+        
+        .content-wrapper {
+            padding: var(--space-8);
+        }
+        
+        .section {
+            margin-bottom: var(--space-8);
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-6);
+            padding-bottom: var(--space-4);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        
+        .section-description {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-top: var(--space-2);
+        }
+
+        /* Sequence Display */
+        .sequence-section {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin: var(--space-6) 0;
+            box-shadow: var(--shadow-sm);
+            width: 100%;
+        }
+
+        .sequence-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: var(--space-3);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .sequence-display {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: var(--gray-800);
+            line-height: 1.6;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Properties Grid */
+        .properties-grid {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+            margin-top: var(--space-4);
+        }
+
+        .property-group {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            box-shadow: var(--shadow-sm);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .property-group.horizontal-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-4);
+        }
+
+        .property-group.secondary-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-4);
+        }
+
+        /* Post-Translational Modifications Section */
+        .ptm-section {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .ptm-section.ptm-empty {
+            background: var(--gray-50);
+            border-style: dashed;
+        }
+
+        .ptm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-4);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .ptm-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .ptm-count {
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+            color: white;
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-md);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .ptm-overview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+            padding: var(--space-4);
+            background: var(--gray-50);
+            border-radius: var(--radius-md);
+        }
+
+        .ptm-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            background: white;
+            border: 1px solid var(--gray-200);
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        .ptm-count-badge {
+            background: var(--primary-100);
+            color: var(--primary-700);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .ptm-details {
+            margin-top: var(--space-4);
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            background: white;
+        }
+
+        .ptm-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        /* Scrollbar styling */
+        .ptm-details::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .ptm-details::-webkit-scrollbar-track {
+            background: var(--gray-100);
+            border-radius: var(--radius-md);
+        }
+
+        .ptm-details::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: var(--radius-md);
+        }
+
+        .ptm-details::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-400);
+        }
+
+        .ptm-item {
+            background: var(--gray-50);
+            border-left: 3px solid var(--primary-600);
+            padding: var(--space-4);
+            border-radius: var(--radius-md);
+            display: flex;
+            gap: var(--space-4);
+            align-items: flex-start;
+        }
+
+        .ptm-position {
+            font-weight: 700;
+            color: var(--primary-600);
+            min-width: 80px;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+        }
+
+        .ptm-info {
+            flex: 1;
+        }
+
+        .ptm-type-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary-600);
+            margin-bottom: var(--space-1);
+        }
+
+        .ptm-description {
+            font-size: 0.875rem;
+            color: var(--gray-700);
+            line-height: 1.4;
+        }
+
+        .ptm-more-indicator {
+            text-align: center;
+            padding: var(--space-4);
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            font-style: italic;
+            border-top: 1px dashed var(--gray-300);
+            margin-top: var(--space-3);
+        }
+
+        /* Secondary Structure Comparison Table */
+        .sec-struct-table-wrapper {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            margin-top: var(--space-4);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sec-struct-comparison {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        .sec-struct-comparison thead {
+            background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-50) 100%);
+        }
+
+        .sec-struct-comparison th {
+            padding: var(--space-3) var(--space-4);
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-700);
+            border-bottom: 2px solid var(--gray-300);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+
+        .sec-struct-comparison td {
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .sec-struct-comparison tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .sec-struct-comparison tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        .sec-struct-comparison td:first-child {
+            font-weight: 500;
+            color: var(--gray-800);
+            width: 40%;
+        }
+
+        .sec-struct-comparison .pred-value {
+            text-align: center;
+            color: var(--primary-600);
+            font-weight: 600;
+        }
+
+        .sec-struct-comparison .exp-value {
+            text-align: center;
+            color: var(--success-600);
+            font-weight: 600;
+        }
+
+        .property-group-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary-600);
+            margin-bottom: var(--space-3);
+            padding-bottom: var(--space-2);
+            border-bottom: 2px solid var(--primary-100);
+        }
+
+        .property-item {
+            margin-bottom: var(--space-4);
+        }
+
+        .property-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .property-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-600);
+            margin-bottom: var(--space-1);
+        }
+
+        .property-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            font-family: var(--font-mono);
+        }
+
+        .property-unit {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 400;
+            margin-left: var(--space-1);
+        }
+
+        /* Legacy table support */
+        .properties-table {
+            width: 100%;
+            max-width: 700px;
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .properties-table th {
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+            color: white;
+            font-weight: 600;
+            text-align: left;
+            padding: var(--space-4);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .properties-table td {
+            padding: var(--space-4);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .properties-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .properties-table tr:nth-child(even) {
+            background: var(--gray-50);
+        }
+
+        .properties-table td:first-child {
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .properties-table td:last-child {
+            color: var(--gray-900);
+            font-family: var(--font-mono);
+            font-size: 0.9375rem;
+        }
+        
+        .viewer-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-xl);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-md);
+            position: relative;
+        }
+        
+
+        /* Charge Profile Chart */
+        .charge-profile-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-xl);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--space-6);
+        }
+
+        .charge-profile-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: var(--space-4);
+        }
+
+        .charge-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .charge-stat {
+            background: var(--gray-50);
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--gray-200);
+        }
+
+        .charge-stat-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-600);
+            margin-bottom: var(--space-2);
+        }
+
+        .charge-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-600);
+        }
+
+        .charge-stat-unit {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 400;
+            margin-left: var(--space-1);
+        }
+
+        /* Track Table */
+        .track-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .track-table tr {
+            border-bottom: 1px solid var(--gray-100);
+        }
+        
+        .track-table tr:last-child {
+            border-bottom: none;
+        }
+        
+        .track-table td {
+            padding: var(--space-3) var(--space-2);
+        }
+        
+        .track-label-cell {
+            width: 160px;
+            padding-right: var(--space-4);
+            border-right: 2px solid var(--gray-200);
+            background: var(--gray-50);
+            vertical-align: middle;
+        }
+        
+        .track-label-wrapper {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            position: relative;
+        }
+        
+        .track-name {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            white-space: nowrap;
+        }
+        
+        .info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary-600);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            cursor: help;
+            flex-shrink: 0;
+        }
+        
+        .track-tooltip {
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: var(--space-2);
+            background: var(--gray-900);
+            color: white;
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 1000;
+        }
+        
+        .info-icon:hover + .track-tooltip {
+            opacity: 1;
+        }
+        
+        .track-content {
+            background: white;
+        }
+        
+        .track-table tr:first-child .track-label-cell {
+            background: transparent;
+            border: none;
+        }
+        
+        /* Make tracks hoverable */
+        .track-content nightingale-track,
+        .track-content nightingale-sequence,
+        .track-content nightingale-colored-sequence {
+            cursor: crosshair;
+        }
+
+        /* Styling for overlapping PTM features in Nightingale tracks */
+        .track-content nightingale-track svg.container {
+            /* Increase height to accommodate staggered PTMs */
+            height: auto !important;
+        }
+        
+        /* Collapsible Sections */
+        .collapsible-section {
+            margin-bottom: var(--space-6);
+        }
+
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-4) var(--space-6);
+            background: linear-gradient(135deg, var(--primary-50) 0%, var(--gray-50) 100%);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+
+        .collapsible-section.collapsed .collapsible-header {
+            border-radius: var(--radius-lg);
+        }
+
+        .collapsible-header:hover {
+            background: linear-gradient(135deg, var(--primary-100) 0%, var(--gray-100) 100%);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .collapsible-title-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            flex: 1;
+        }
+
+        .collapsible-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            font-size: 1.2rem;
+            color: var(--primary-600);
+            transition: transform 0.2s ease;
+        }
+
+        .collapsible-section.collapsed .collapsible-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .collapsible-status {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            padding: var(--space-2) var(--space-3);
+            background: white;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--gray-200);
+        }
+
+        .collapsible-content {
+            border: 1px solid var(--gray-200);
+            border-top: none;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            overflow: hidden;
+            max-height: 1000px;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-section.collapsed .collapsible-content {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .collapsible-body {
+            padding: var(--space-6);
+            background: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .loading {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: var(--space-4);
+            }
+            
+            .header-title {
+                font-size: 1.5rem;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .metadata-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .content-wrapper {
+                padding: var(--space-4);
+            }
+            
+            .track-label-cell {
+                width: 100px;
+            }
+            
+            .track-name {
+                font-size: 0.75rem;
+            }
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .report-card {
+                box-shadow: none;
+            }
+            
+            .info-icon, .track-tooltip {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="report-card">
+            <div class="header">
+                <h1 class="header-title">
+                    🧬 Protein Analysis Report
+                    <span class="protein-badge">P69905</span>
+                </h1>
+                <p class="header-subtitle">Comprehensive biophysical and structural analysis</p>
+            </div>
+            
+            <div class="metadata-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Protein Name</div>
+                    <div class="stat-value">Hemoglobin subunit alpha</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Gene Name</div>
+                    <div class="stat-value">HBA1</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Organism of Origin</div>
+                    <div class="stat-value">Homo sapiens</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">UniProt Accession</div>
+                    <div class="stat-value">P69905</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Sequence Length</div>
+                    <div class="stat-value">
+                        142
+                        <span class="stat-unit">amino acids</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Annotated Features</div>
+                    <div class="stat-value">
+                        <span id="feature-count">0</span>
+                        <span class="stat-unit">from UniProt</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amino Acid Sequence Section -->
+            <div class="sequence-section">
+                <div class="sequence-label">Amino Acid Sequence:</div>
+                <div class="sequence-display" id="aa-sequence"></div>
+            </div>
+
+            <div class="content-wrapper">
+                <div class="collapsible-section" id="biophysical-properties-section">
+                    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                        <div class="collapsible-title-group">
+                            <span class="collapsible-toggle">▼</span>
+                            <div>
+                                <div class="collapsible-title">Biophysical Properties</div>
+                                <p class="section-description">Calculated using BioPython ProtParam with Bjellqvist pKa values</p>
+                            </div>
+                        </div>
+                        <div class="collapsible-status">Level 1 • Essential</div>
+                    </div>
+                    <div class="collapsible-content">
+                        <div class="collapsible-body">
+                            
+        <table class="properties-table">
+            <tr><td>Molecular Weight</td><td>0.00 Da</td></tr>
+            <tr><td>Isoelectric Point</td><td>8.72</td></tr>
+            <tr><td>GRAVY Score</td><td>0.0479</td></tr>
+            <tr><td>Aromaticity</td><td>0.0000</td></tr>
+            <tr><td>Instability Index</td><td>6.97</td></tr>
+            <tr><td>Cysteine Count</td><td>1</td></tr>
+        </table>
+        
+                        </div>
+                    </div>
+                </div>
+
+                <div class="collapsible-section" id="charge-profile-section">
+                    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                        <div class="collapsible-title-group">
+                            <span class="collapsible-toggle">▼</span>
+                            <div>
+                                <div class="collapsible-title">pH-Dependent Charge Profile</div>
+                                <p class="section-description">Net charge of the protein across pH range 2.0 - 12.0</p>
+                            </div>
+                        </div>
+                        <div class="collapsible-status">Level 2 • Advanced</div>
+                    </div>
+                    <div class="collapsible-content">
+                        <div class="collapsible-body">
+                            <div class="charge-profile-card">
+                                <div class="charge-profile-container">
+                                    <canvas id="charge-profile-chart"></canvas>
+                                </div>
+
+                                <div class="charge-stats">
+                                    <div class="charge-stat">
+                                        <div class="charge-stat-label">Isoelectric Point (pI)</div>
+                                        <div class="charge-stat-value">
+                                            <span id="pi-value">-</span>
+                                            <span class="charge-stat-unit">pH</span>
+                                        </div>
+                                    </div>
+                                    <div class="charge-stat">
+                                        <div class="charge-stat-label">Charge at pH 7.4 (Physiological)</div>
+                                        <div class="charge-stat-value">
+                                            <span id="charge-74-value">-</span>
+                                            <span class="charge-stat-unit">e⁻</span>
+                                        </div>
+                                    </div>
+                                    <div class="charge-stat">
+                                        <div class="charge-stat-label">Charge Range</div>
+                                        <div class="charge-stat-value">
+                                            <span id="charge-min-value">-</span>
+                                            <span class="charge-stat-unit">to</span>
+                                            <span id="charge-max-value">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="collapsible-section" id="protein-viewer-section">
+                    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                        <div class="collapsible-title-group">
+                            <span class="collapsible-toggle">▼</span>
+                            <div>
+                                <div class="collapsible-title">Interactive Protein Viewer</div>
+                                <p class="section-description">Hover over colored features to see position, length, and Feature ID</p>
+                            </div>
+                        </div>
+                        <div class="collapsible-status">Level 2 • Advanced</div>
+                    </div>
+                    <div class="collapsible-content">
+                        <div class="collapsible-body">
+                            <div class="viewer-card">
+                        <nightingale-manager id="viewer-manager">
+                            <table class="track-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="track-label-cell"></td>
+                                        <td class="track-content">
+                                            <nightingale-navigation id="navigation" min-width="900" height="40" length="142" display-start="1" display-end="142" margin-color="white"></nightingale-navigation>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="track-label-cell">
+                                            <div class="track-label-wrapper">
+                                                <span class="track-name">Sequence</span>
+                                                <span class="info-icon">i</span>
+                                                <span class="track-tooltip">Amino acid letters (one-letter code)</span>
+                                            </div>
+                                        </td>
+                                        <td class="track-content">
+                                            <nightingale-sequence id="sequence" min-width="900" height="40" length="142" display-start="1" display-end="142" margin-color="white" highlight-event="onmouseover"></nightingale-sequence>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="track-label-cell">
+                                            <div class="track-label-wrapper">
+                                                <span class="track-name">Hydrophobicity</span>
+                                                <span class="info-icon">i</span>
+                                                <span class="track-tooltip">Kyte-Doolittle scale: Blue=polar, Red=nonpolar</span>
+                                            </div>
+                                        </td>
+                                        <td class="track-content">
+                                            <nightingale-colored-sequence id="colored-sequence" min-width="900" height="20" length="142" display-start="1" display-end="142" scale="hydrophobicity-scale" margin-color="white" highlight-event="onmouseover"></nightingale-colored-sequence>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="track-label-cell">
+                                            <div class="track-label-wrapper">
+                                                <span class="track-name">Chain</span>
+                                                <span class="info-icon">i</span>
+                                                <span class="track-tooltip">Mature protein after signal peptide cleavage</span>
+                                            </div>
+                                        </td>
+                                        <td class="track-content">
+                                            <nightingale-track id="chain" layout="non-overlapping" min-width="900" height="20" length="142" display-start="1" display-end="142" margin-color="white" highlight-event="onmouseover"></nightingale-track>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="track-label-cell">
+                                            <div class="track-label-wrapper">
+                                                <span class="track-name">Domain</span>
+                                                <span class="info-icon">i</span>
+                                                <span class="track-tooltip">Conserved functional/structural domains</span>
+                                            </div>
+                                        </td>
+                                        <td class="track-content">
+                                            <nightingale-track id="domain" min-width="900" height="20" length="142" display-start="1" display-end="142" margin-color="white" highlight-event="onmouseover"></nightingale-track>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="track-label-cell">
+                                            <div class="track-label-wrapper">
+                                                <span class="track-name">Region</span>
+                                                <span class="info-icon">i</span>
+                                                <span class="track-tooltip">Regions of interest (disordered, coiled-coil, etc.)</span>
+                                            </div>
+                                        </td>
+                                        <td class="track-content">
+                                            <nightingale-track id="region" min-width="900" height="20" length="142" display-start="1" display-end="142" margin-color="white" highlight-event="onmouseover"></nightingale-track>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="track-label-cell">
+                                            <div class="track-label-wrapper">
+                                                <span class="track-name">Site</span>
+                                                <span class="info-icon">i</span>
+                                                <span class="track-tooltip">Functionally important sites (active site, etc.)</span>
+                                            </div>
+                                        </td>
+                                        <td class="track-content">
+                                            <nightingale-track id="site" min-width="900" height="20" length="142" display-start="1" display-end="142" margin-color="white" highlight-event="onmouseover"></nightingale-track>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="track-label-cell">
+                                            <div class="track-label-wrapper">
+                                                <span class="track-name">Binding Site</span>
+                                                <span class="info-icon">i</span>
+                                                <span class="track-tooltip">Residues involved in ligand/substrate binding</span>
+                                            </div>
+                                        </td>
+                                        <td class="track-content">
+                                            <nightingale-track id="binding" min-width="900" height="20" length="142" display-start="1" display-end="142" margin-color="white" highlight-event="onmouseover"></nightingale-track>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="track-label-cell">
+                                            <div class="track-label-wrapper">
+                                                <span class="track-name">Disulfide Bond</span>
+                                                <span class="info-icon">i</span>
+                                                <span class="track-tooltip">Cysteine pairs forming S-S bridges</span>
+                                            </div>
+                                        </td>
+                                        <td class="track-content">
+                                            <nightingale-track id="disulfide-bond" layout="non-overlapping" min-width="900" height="20" length="142" display-start="1" display-end="142" margin-color="white" highlight-event="onmouseover"></nightingale-track>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="track-label-cell">
+                                            <div class="track-label-wrapper">
+                                                <span class="track-name">Beta Strand</span>
+                                                <span class="info-icon">i</span>
+                                                <span class="track-tooltip">β-sheet secondary structure elements</span>
+                                            </div>
+                                        </td>
+                                        <td class="track-content">
+                                            <nightingale-track id="beta-strand" min-width="900" height="20" length="142" display-start="1" display-end="142" margin-color="white" highlight-event="onmouseover"></nightingale-track>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="track-label-cell">
+                                            <div class="track-label-wrapper">
+                                                <span class="track-name">Helix</span>
+                                                <span class="info-icon">i</span>
+                                                <span class="track-tooltip">α-helix secondary structure elements</span>
+                                            </div>
+                                        </td>
+                                        <td class="track-content">
+                                            <nightingale-track id="helix" min-width="900" height="20" length="142" display-start="1" display-end="142" margin-color="white" highlight-event="onmouseover"></nightingale-track>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="track-label-cell">
+                                            <div class="track-label-wrapper">
+                                                <span class="track-name">Turn</span>
+                                                <span class="info-icon">i</span>
+                                                <span class="track-tooltip">β-turn secondary structure elements</span>
+                                            </div>
+                                        </td>
+                                        <td class="track-content">
+                                            <nightingale-track id="turn" min-width="900" height="20" length="142" display-start="1" display-end="142" margin-color="white" highlight-event="onmouseover"></nightingale-track>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="track-label-cell">
+                                            <div class="track-label-wrapper">
+                                                <span class="track-name">Modified Residue</span>
+                                                <span class="info-icon">i</span>
+                                                <span class="track-tooltip">Post-translational modifications (PTMs)</span>
+                                            </div>
+                                        </td>
+                                        <td class="track-content">
+                                            <nightingale-track id="mod-res" layout="non-overlapping" min-width="900" height="50" length="142" display-start="1" display-end="142" margin-color="white" highlight-event="onmouseover"></nightingale-track>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </nightingale-manager>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collapsible PTM Section -->
+                <div class="collapsible-section" id="ptm-description-section">
+                    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                        <div class="collapsible-title-group">
+                            <span class="collapsible-toggle">▼</span>
+                            <div>
+                                <div class="collapsible-title">Post-Translational Modifications</div>
+                                <p class="section-description">Detailed PTM information and descriptions</p>
+                            </div>
+                        </div>
+                        <div class="collapsible-status">Level 2 • Advanced</div>
+                    </div>
+                    <div class="collapsible-content">
+                        <div class="collapsible-body">
+                            <div class="ptm-types"><div class="ptm-type-item">MOD_RES: 17</div><div class="ptm-type-item">CARBOHYD: 4</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collapsible section toggle script -->
+    <script>
+        // Global toggle function for collapsible sections
+        window.toggleCollapsible = function(header) {
+            const section = header.closest('.collapsible-section');
+            if (section) {
+                const isCollapsed = section.classList.toggle('collapsed');
+                console.log('Toggled section:', section.id, '- now collapsed:', isCollapsed);
+            }
+        };
+
+        // Initialize all collapsible sections as expanded by default
+        document.addEventListener('DOMContentLoaded', function() {
+            // Keep Level 2 sections collapsed initially (Advanced)
+            const chargeProfileSection = document.getElementById('charge-profile-section');
+            const proteinViewerSection = document.getElementById('protein-viewer-section');
+            const ptmDescriptionSection = document.getElementById('ptm-description-section');
+
+            if (chargeProfileSection) {
+                chargeProfileSection.classList.add('collapsed');
+                console.log('Collapsed charge-profile-section');
+            }
+            if (proteinViewerSection) {
+                proteinViewerSection.classList.add('collapsed');
+                console.log('Collapsed protein-viewer-section');
+            }
+            if (ptmDescriptionSection) {
+                ptmDescriptionSection.classList.add('collapsed');
+                console.log('Collapsed ptm-description-section');
+            }
+        });
+    </script>
+
+    <script type="module">
+        import "@nightingale-elements/nightingale-sequence@latest";
+        import "@nightingale-elements/nightingale-track@latest";
+        import "@nightingale-elements/nightingale-manager@latest";
+        import "@nightingale-elements/nightingale-navigation@latest";
+        import "@nightingale-elements/nightingale-colored-sequence@latest";
+
+        const sequence = "MVLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSHGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR";
+        const features = [{"type": "INIT_MET", "category": "MOLECULE_PROCESSING", "description": "Removed", "begin": "1", "end": 1, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12665801", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12665801", "alternativeUrl": "https://europepmc.org/abstract/MED/12665801"}}, {"code": "ECO:0000269", "source": {"name": "PubMed", "id": "13872627", "url": "http://www.ncbi.nlm.nih.gov/pubmed/13872627", "alternativeUrl": "https://europepmc.org/abstract/MED/13872627"}}, {"code": "ECO:0000269", "source": {"name": "PubMed", "id": "13954546", "url": "http://www.ncbi.nlm.nih.gov/pubmed/13954546", "alternativeUrl": "https://europepmc.org/abstract/MED/13954546"}}, {"code": "ECO:0000269", "source": {"name": "PubMed", "id": "14093912", "url": "http://www.ncbi.nlm.nih.gov/pubmed/14093912", "alternativeUrl": "https://europepmc.org/abstract/MED/14093912"}}], "start": 1, "title": "Removed\nPosition: 1-1 aa\nSize: 1 aa"}, {"type": "CHAIN", "category": "MOLECULE_PROCESSING", "ftId": "PRO_0000052653", "description": "Hemoglobin subunit alpha", "begin": "2", "end": 142, "molecule": "", "start": 2, "title": "Hemoglobin subunit alpha\nPosition: 2-142 aa\nSize: 141 aa"}, {"type": "PEPTIDE", "category": "MOLECULE_PROCESSING", "ftId": "PRO_0000455882", "description": "Hemopressin", "begin": "96", "end": 104, "molecule": "", "evidences": [{"code": "ECO:0000305", "source": {"name": "PubMed", "id": "18077343", "url": "http://www.ncbi.nlm.nih.gov/pubmed/18077343", "alternativeUrl": "https://europepmc.org/abstract/MED/18077343"}}], "start": 96, "title": "Hemopressin\nPosition: 96-104 aa\nSize: 9 aa"}, {"type": "DOMAIN", "category": "DOMAINS_AND_SITES", "description": "Globin", "begin": "2", "end": 142, "molecule": "", "evidences": [{"code": "ECO:0000255", "source": {"name": "PROSITE-ProRule", "id": "PRU00238", "url": "https://prosite.expasy.org/unirule/PRU00238"}}], "start": 2, "title": "Globin\nPosition: 2-142 aa\nSize: 141 aa"}, {"type": "BINDING", "category": "DOMAINS_AND_SITES", "description": "", "begin": "59", "end": 59, "molecule": "", "ligand": {"name": "O2", "dbReference": {"name": "ChEBI", "id": "CHEBI:15379"}}, "evidences": [{"code": "ECO:0000255", "source": {"name": "PROSITE-ProRule", "id": "PRU00238", "url": "https://prosite.expasy.org/unirule/PRU00238"}}], "start": 59, "title": "\nPosition: 59-59 aa\nSize: 1 aa"}, {"type": "BINDING", "category": "DOMAINS_AND_SITES", "description": "proximal binding residue", "begin": "88", "end": 88, "molecule": "", "ligand": {"name": "heme b", "dbReference": {"name": "ChEBI", "id": "CHEBI:60344"}}, "ligandPart": {"name": "Fe", "dbReference": {"name": "ChEBI", "id": "CHEBI:18248"}}, "evidences": [{"code": "ECO:0000255", "source": {"name": "PROSITE-ProRule", "id": "PRU00238", "url": "https://prosite.expasy.org/unirule/PRU00238"}}], "start": 88, "title": "proximal binding residue\nPosition: 88-88 aa\nSize: 1 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "9", "end": 10, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 9, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 9-10 aa\nSize: 2 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "Not glycated", "begin": "12", "end": 12, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7358733", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7358733", "alternativeUrl": "https://europepmc.org/abstract/MED/7358733"}}], "start": 12, "title": "Not glycated\nPosition: 12-12 aa\nSize: 1 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "14", "end": 15, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 14, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 14-15 aa\nSize: 2 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "25", "end": 26, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 25, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 25-26 aa\nSize: 2 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "30", "end": 31, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 30, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 30-31 aa\nSize: 2 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "46", "end": 47, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 46, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 46-47 aa\nSize: 2 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "48", "end": 49, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 48, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 48-49 aa\nSize: 2 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "53", "end": 54, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 53, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 53-54 aa\nSize: 2 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "56", "end": 57, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 56, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 56-57 aa\nSize: 2 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "Not glycated", "begin": "57", "end": 57, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7358733", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7358733", "alternativeUrl": "https://europepmc.org/abstract/MED/7358733"}}], "start": 57, "title": "Not glycated\nPosition: 57-57 aa\nSize: 1 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "60", "end": 61, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 60, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 60-61 aa\nSize: 2 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "Not glycated", "begin": "61", "end": 61, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7358733", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7358733", "alternativeUrl": "https://europepmc.org/abstract/MED/7358733"}}], "start": 61, "title": "Not glycated\nPosition: 61-61 aa\nSize: 1 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "Not glycated", "begin": "91", "end": 91, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7358733", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7358733", "alternativeUrl": "https://europepmc.org/abstract/MED/7358733"}}], "start": 91, "title": "Not glycated\nPosition: 91-91 aa\nSize: 1 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "92", "end": 93, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 92, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 92-93 aa\nSize: 2 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "Not glycated", "begin": "100", "end": 100, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7358733", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7358733", "alternativeUrl": "https://europepmc.org/abstract/MED/7358733"}}], "start": 100, "title": "Not glycated\nPosition: 100-100 aa\nSize: 1 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "107", "end": 108, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 107, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 107-108 aa\nSize: 2 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "109", "end": 110, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 109, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 109-110 aa\nSize: 2 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "122", "end": 123, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 122, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 122-123 aa\nSize: 2 aa"}, {"type": "SITE", "category": "DOMAINS_AND_SITES", "description": "(Microbial infection) Cleavage; by N.americanus apr-2", "begin": "134", "end": 135, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "12552433", "url": "http://www.ncbi.nlm.nih.gov/pubmed/12552433", "alternativeUrl": "https://europepmc.org/abstract/MED/12552433"}}], "start": 134, "title": "(Microbial infection) Cleavage; by N.americanus apr-2\nPosition: 134-135 aa\nSize: 2 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "Phosphoserine", "begin": "4", "end": 4, "molecule": "", "evidences": [{"code": "ECO:0007744", "source": {"name": "PubMed", "id": "24275569", "url": "http://www.ncbi.nlm.nih.gov/pubmed/24275569", "alternativeUrl": "https://europepmc.org/abstract/MED/24275569"}}], "start": 4, "title": "Phosphoserine\nPosition: 4-4 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "N6-succinyllysine; alternate", "begin": "8", "end": 8, "molecule": "", "evidences": [{"code": "ECO:0000250", "source": {"name": "UniProtKB", "id": "P01942", "url": "https://www.uniprot.org/uniprot/P01942"}}], "start": 8, "title": "N6-succinyllysine; alternate\nPosition: 8-8 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "Phosphothreonine", "begin": "9", "end": 9, "molecule": "", "evidences": [{"code": "ECO:0007744", "source": {"name": "PubMed", "id": "24275569", "url": "http://www.ncbi.nlm.nih.gov/pubmed/24275569", "alternativeUrl": "https://europepmc.org/abstract/MED/24275569"}}], "start": 9, "title": "Phosphothreonine\nPosition: 9-9 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "N6-succinyllysine", "begin": "12", "end": 12, "molecule": "", "evidences": [{"code": "ECO:0000250", "source": {"name": "UniProtKB", "id": "P01942", "url": "https://www.uniprot.org/uniprot/P01942"}}], "start": 12, "title": "N6-succinyllysine\nPosition: 12-12 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "N6-acetyllysine; alternate", "begin": "17", "end": 17, "molecule": "", "evidences": [{"code": "ECO:0007744", "source": {"name": "PubMed", "id": "19608861", "url": "http://www.ncbi.nlm.nih.gov/pubmed/19608861", "alternativeUrl": "https://europepmc.org/abstract/MED/19608861"}}], "start": 17, "title": "N6-acetyllysine; alternate\nPosition: 17-17 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "N6-succinyllysine; alternate", "begin": "17", "end": 17, "molecule": "", "evidences": [{"code": "ECO:0000250", "source": {"name": "UniProtKB", "id": "P01942", "url": "https://www.uniprot.org/uniprot/P01942"}}], "start": 17, "title": "N6-succinyllysine; alternate\nPosition: 17-17 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "Phosphotyrosine", "begin": "25", "end": 25, "molecule": "", "evidences": [{"code": "ECO:0007744", "source": {"name": "PubMed", "id": "24275569", "url": "http://www.ncbi.nlm.nih.gov/pubmed/24275569", "alternativeUrl": "https://europepmc.org/abstract/MED/24275569"}}], "start": 25, "title": "Phosphotyrosine\nPosition: 25-25 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "Phosphoserine", "begin": "36", "end": 36, "molecule": "", "evidences": [{"code": "ECO:0007744", "source": {"name": "PubMed", "id": "24275569", "url": "http://www.ncbi.nlm.nih.gov/pubmed/24275569", "alternativeUrl": "https://europepmc.org/abstract/MED/24275569"}}], "start": 36, "title": "Phosphoserine\nPosition: 36-36 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "N6-succinyllysine; alternate", "begin": "41", "end": 41, "molecule": "", "evidences": [{"code": "ECO:0000250", "source": {"name": "UniProtKB", "id": "P01942", "url": "https://www.uniprot.org/uniprot/P01942"}}], "start": 41, "title": "N6-succinyllysine; alternate\nPosition: 41-41 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "Phosphoserine", "begin": "50", "end": 50, "molecule": "", "evidences": [{"code": "ECO:0007744", "source": {"name": "PubMed", "id": "24275569", "url": "http://www.ncbi.nlm.nih.gov/pubmed/24275569", "alternativeUrl": "https://europepmc.org/abstract/MED/24275569"}}], "start": 50, "title": "Phosphoserine\nPosition: 50-50 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "Phosphoserine", "begin": "103", "end": 103, "molecule": "", "evidences": [{"code": "ECO:0000250", "source": {"name": "UniProtKB", "id": "P01942", "url": "https://www.uniprot.org/uniprot/P01942"}}], "start": 103, "title": "Phosphoserine\nPosition: 103-103 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "Phosphothreonine", "begin": "109", "end": 109, "molecule": "", "evidences": [{"code": "ECO:0000250", "source": {"name": "UniProtKB", "id": "P01942", "url": "https://www.uniprot.org/uniprot/P01942"}}], "start": 109, "title": "Phosphothreonine\nPosition: 109-109 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "Phosphoserine", "begin": "125", "end": 125, "molecule": "", "evidences": [{"code": "ECO:0000250", "source": {"name": "UniProtKB", "id": "P01942", "url": "https://www.uniprot.org/uniprot/P01942"}}], "start": 125, "title": "Phosphoserine\nPosition: 125-125 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "Phosphoserine", "begin": "132", "end": 132, "molecule": "", "evidences": [{"code": "ECO:0000250", "source": {"name": "UniProtKB", "id": "P01942", "url": "https://www.uniprot.org/uniprot/P01942"}}], "start": 132, "title": "Phosphoserine\nPosition: 132-132 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "Phosphothreonine", "begin": "135", "end": 135, "molecule": "", "evidences": [{"code": "ECO:0000250", "source": {"name": "UniProtKB", "id": "P01942", "url": "https://www.uniprot.org/uniprot/P01942"}}], "start": 135, "title": "Phosphothreonine\nPosition: 135-135 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "Phosphothreonine", "begin": "138", "end": 138, "molecule": "", "evidences": [{"code": "ECO:0000250", "source": {"name": "UniProtKB", "id": "P01942", "url": "https://www.uniprot.org/uniprot/P01942"}}], "start": 138, "title": "Phosphothreonine\nPosition: 138-138 aa\nSize: 1 aa"}, {"type": "MOD_RES", "category": "PTM", "description": "Phosphoserine", "begin": "139", "end": 139, "molecule": "", "evidences": [{"code": "ECO:0000250", "source": {"name": "UniProtKB", "id": "P01942", "url": "https://www.uniprot.org/uniprot/P01942"}}], "start": 139, "title": "Phosphoserine\nPosition: 139-139 aa\nSize: 1 aa"}, {"type": "CARBOHYD", "category": "PTM", "ftId": "", "description": "N-linked (Glc) (glycation) lysine; alternate", "begin": "8", "end": 8, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7358733", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7358733", "alternativeUrl": "https://europepmc.org/abstract/MED/7358733"}}], "start": 8, "title": "N-linked (Glc) (glycation) lysine; alternate\nPosition: 8-8 aa\nSize: 1 aa"}, {"type": "CARBOHYD", "category": "PTM", "ftId": "", "description": "N-linked (Glc) (glycation) lysine; alternate", "begin": "17", "end": 17, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7358733", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7358733", "alternativeUrl": "https://europepmc.org/abstract/MED/7358733"}}], "start": 17, "title": "N-linked (Glc) (glycation) lysine; alternate\nPosition: 17-17 aa\nSize: 1 aa"}, {"type": "CARBOHYD", "category": "PTM", "ftId": "", "description": "N-linked (Glc) (glycation) lysine; alternate", "begin": "41", "end": 41, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7358733", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7358733", "alternativeUrl": "https://europepmc.org/abstract/MED/7358733"}}], "start": 41, "title": "N-linked (Glc) (glycation) lysine; alternate\nPosition: 41-41 aa\nSize: 1 aa"}, {"type": "CARBOHYD", "category": "PTM", "ftId": "", "description": "N-linked (Glc) (glycation) lysine", "begin": "62", "end": 62, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7358733", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7358733", "alternativeUrl": "https://europepmc.org/abstract/MED/7358733"}}], "start": 62, "title": "N-linked (Glc) (glycation) lysine\nPosition: 62-62 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002719", "description": "in Thionville; O(2) affinity down; dbSNP:rs33981821", "alternativeSequence": "E", "begin": "2", "end": 2, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1618774", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1618774", "alternativeUrl": "https://europepmc.org/abstract/MED/1618774"}}], "start": 2, "title": "in Thionville; O(2) affinity down; dbSNP:rs33981821\nPosition: 2-2 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002720", "description": "in ChongQing; O(2) affinity up; dbSNP:rs36030576", "alternativeSequence": "R", "begin": "3", "end": 3, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "6526652", "url": "http://www.ncbi.nlm.nih.gov/pubmed/6526652", "alternativeUrl": "https://europepmc.org/abstract/MED/6526652"}}], "start": 3, "title": "in ChongQing; O(2) affinity up; dbSNP:rs36030576\nPosition: 3-3 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002721", "description": "in J-Toronto; dbSNP:rs34090856", "alternativeSequence": "D", "begin": "6", "end": 6, "molecule": "", "start": 6, "title": "in J-Toronto; dbSNP:rs34090856\nPosition: 6-6 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002722", "description": "in Karachi; dbSNP:rs34751764", "alternativeSequence": "P", "begin": "6", "end": 6, "molecule": "", "start": 6, "title": "in Karachi; dbSNP:rs34751764\nPosition: 6-6 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002723", "description": "in Sawara; O(2) affinity up; dbSNP:rs33986902", "alternativeSequence": "A", "begin": "7", "end": 7, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "20980", "url": "http://www.ncbi.nlm.nih.gov/pubmed/20980", "alternativeUrl": "https://europepmc.org/abstract/MED/20980"}}, {"code": "ECO:0000269", "source": {"name": "PubMed", "id": "4744335", "url": "http://www.ncbi.nlm.nih.gov/pubmed/4744335", "alternativeUrl": "https://europepmc.org/abstract/MED/4744335"}}], "start": 7, "title": "in Sawara; O(2) affinity up; dbSNP:rs33986902\nPosition: 7-7 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002724", "description": "in Swan River; dbSNP:rs281864805", "alternativeSequence": "G", "begin": "7", "end": 7, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "8745434", "url": "http://www.ncbi.nlm.nih.gov/pubmed/8745434", "alternativeUrl": "https://europepmc.org/abstract/MED/8745434"}}], "start": 7, "title": "in Swan River; dbSNP:rs281864805\nPosition: 7-7 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002725", "description": "in Dunn; O(2) affinity up; dbSNP:rs33961916", "alternativeSequence": "N", "begin": "7", "end": 7, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "478975", "url": "http://www.ncbi.nlm.nih.gov/pubmed/478975", "alternativeUrl": "https://europepmc.org/abstract/MED/478975"}}, {"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7435503", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7435503", "alternativeUrl": "https://europepmc.org/abstract/MED/7435503"}}], "start": 7, "title": "in Dunn; O(2) affinity up; dbSNP:rs33961916\nPosition: 7-7 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002726", "description": "in Ferndown; O(2) affinity up; dbSNP:rs281864805", "alternativeSequence": "V", "begin": "7", "end": 7, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7238857", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7238857", "alternativeUrl": "https://europepmc.org/abstract/MED/7238857"}}], "start": 7, "title": "in Ferndown; O(2) affinity up; dbSNP:rs281864805\nPosition: 7-7 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002727", "description": "in Woodville; O(2) affinity up; dbSNP:rs281864806", "alternativeSequence": "Y", "begin": "7", "end": 7, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "3754246", "url": "http://www.ncbi.nlm.nih.gov/pubmed/3754246", "alternativeUrl": "https://europepmc.org/abstract/MED/3754246"}}], "start": 7, "title": "in Woodville; O(2) affinity up; dbSNP:rs281864806\nPosition: 7-7 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002728", "description": "in Kurosaki; dbSNP:rs34817956", "alternativeSequence": "E", "begin": "8", "end": 8, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7558876", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7558876", "alternativeUrl": "https://europepmc.org/abstract/MED/7558876"}}], "start": 8, "title": "in Kurosaki; dbSNP:rs34817956\nPosition: 8-8 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_038149", "description": "in Broomfield; dbSNP:rs281860608", "alternativeSequence": "T", "begin": "10", "end": 10, "molecule": "", "start": 10, "title": "in Broomfield; dbSNP:rs281860608\nPosition: 10-10 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002729", "description": "in Anantharaj; dbSNP:rs33938574", "alternativeSequence": "E", "begin": "12", "end": 12, "molecule": "", "start": 12, "title": "in Anantharaj; dbSNP:rs33938574\nPosition: 12-12 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002730", "description": "in J-Paris 1/J-Aljezur; dbSNP:rs35615982", "alternativeSequence": "D", "begin": "13", "end": 13, "molecule": "", "start": 13, "title": "in J-Paris 1/J-Aljezur; dbSNP:rs35615982\nPosition: 13-13 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_038150", "description": "in Ravenscourt Park; causes alpha-thalassemia; dbSNP:rs35331909", "alternativeSequence": "P", "begin": "14", "end": 14, "molecule": "", "start": 14, "title": "in Ravenscourt Park; causes alpha-thalassemia; dbSNP:rs35331909\nPosition: 14-14 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002731", "description": "in Evanston; O(2) affinity up; dbSNP:rs33964317", "alternativeSequence": "R", "begin": "15", "end": 15, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "6725558", "url": "http://www.ncbi.nlm.nih.gov/pubmed/6725558", "alternativeUrl": "https://europepmc.org/abstract/MED/6725558"}}, {"code": "ECO:0000269", "source": {"name": "PubMed", "id": "6882779", "url": "http://www.ncbi.nlm.nih.gov/pubmed/6882779", "alternativeUrl": "https://europepmc.org/abstract/MED/6882779"}}], "start": 15, "title": "in Evanston; O(2) affinity up; dbSNP:rs33964317\nPosition: 15-15 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002732", "description": "in Ottawa/Siam; dbSNP:rs35816645", "alternativeSequence": "R", "begin": "16", "end": 16, "molecule": "", "start": 16, "title": "in Ottawa/Siam; dbSNP:rs35816645\nPosition: 16-16 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002733", "description": "in Harbin; slightly unstable; dbSNP:rs35210126", "alternativeSequence": "M", "begin": "17", "end": 17, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "6526652", "url": "http://www.ncbi.nlm.nih.gov/pubmed/6526652", "alternativeUrl": "https://europepmc.org/abstract/MED/6526652"}}], "start": 17, "title": "in Harbin; slightly unstable; dbSNP:rs35210126\nPosition: 17-17 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002734", "description": "in Beijing; dbSNP:rs281860648 and dbSNP:rs281860619", "alternativeSequence": "N", "begin": "17", "end": 17, "molecule": "", "start": 17, "title": "in Beijing; dbSNP:rs281860648 and dbSNP:rs281860619\nPosition: 17-17 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002735", "description": "in Al-Ain Abu Dhabi; dbSNP:rs35993097", "alternativeSequence": "D", "begin": "19", "end": 19, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1428941", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1428941", "alternativeUrl": "https://europepmc.org/abstract/MED/1428941"}}], "start": 19, "title": "in Al-Ain Abu Dhabi; dbSNP:rs35993097\nPosition: 19-19 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002736", "description": "in Handsworth; dbSNP:rs34504387", "alternativeSequence": "R", "begin": "19", "end": 19, "molecule": "", "start": 19, "title": "in Handsworth; dbSNP:rs34504387\nPosition: 19-19 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002737", "description": "in J-Kurosh", "alternativeSequence": "D", "begin": "20", "end": 20, "molecule": "", "start": 20, "title": "in J-Kurosh\nPosition: 20-20 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002738", "description": "in J-Tashikuergan; dbSNP:rs35628685", "alternativeSequence": "E", "begin": "20", "end": 20, "molecule": "", "start": 20, "title": "in J-Tashikuergan; dbSNP:rs35628685\nPosition: 20-20 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002739", "description": "in Le Lamentin; dbSNP:rs41525149", "alternativeSequence": "Q", "begin": "21", "end": 21, "molecule": "", "start": 21, "title": "in Le Lamentin; dbSNP:rs41525149\nPosition: 21-21 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002740", "description": "in Hobart; dbSNP:rs33943087", "alternativeSequence": "R", "begin": "21", "end": 21, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "3654264", "url": "http://www.ncbi.nlm.nih.gov/pubmed/3654264", "alternativeUrl": "https://europepmc.org/abstract/MED/3654264"}}], "start": 21, "title": "in Hobart; dbSNP:rs33943087\nPosition: 21-21 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002741", "description": "in J-Nyanza; dbSNP:rs11548605", "alternativeSequence": "D", "begin": "22", "end": 22, "molecule": "", "start": 22, "title": "in J-Nyanza; dbSNP:rs11548605\nPosition: 22-22 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002742", "description": "in Fontainebleau; dbSNP:rs34324664", "alternativeSequence": "P", "begin": "22", "end": 22, "molecule": "", "start": 22, "title": "in Fontainebleau; dbSNP:rs34324664\nPosition: 22-22 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002743", "description": "in J-Medellin; dbSNP:rs34608326", "alternativeSequence": "D", "begin": "23", "end": 23, "molecule": "", "start": 23, "title": "in J-Medellin; dbSNP:rs34608326\nPosition: 23-23 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002744", "description": "in Reims; slightly unstable; dbSNP:rs33939421", "alternativeSequence": "G", "begin": "24", "end": 24, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "2634669", "url": "http://www.ncbi.nlm.nih.gov/pubmed/2634669", "alternativeUrl": "https://europepmc.org/abstract/MED/2634669"}}], "start": 24, "title": "in Reims; slightly unstable; dbSNP:rs33939421\nPosition: 24-24 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002745", "description": "in Chad; dbSNP:rs281864819", "alternativeSequence": "K", "begin": "24", "end": 24, "molecule": "", "start": 24, "title": "in Chad; dbSNP:rs281864819\nPosition: 24-24 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002746", "description": "in Luxembourg; unstable; dbSNP:rs281864821", "alternativeSequence": "H", "begin": "25", "end": 25, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "2599879", "url": "http://www.ncbi.nlm.nih.gov/pubmed/2599879", "alternativeUrl": "https://europepmc.org/abstract/MED/2599879"}}], "start": 25, "title": "in Luxembourg; unstable; dbSNP:rs281864821\nPosition: 25-25 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002747", "description": "in Shenyang; unstable; dbSNP:rs281864822", "alternativeSequence": "E", "begin": "27", "end": 27, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7161109", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7161109", "alternativeUrl": "https://europepmc.org/abstract/MED/7161109"}}], "start": 27, "title": "in Shenyang; unstable; dbSNP:rs281864822\nPosition: 27-27 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_025387", "description": "in Campinas; dbSNP:rs281864822", "alternativeSequence": "V", "begin": "27", "end": 27, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "14576901", "url": "http://www.ncbi.nlm.nih.gov/pubmed/14576901", "alternativeUrl": "https://europepmc.org/abstract/MED/14576901"}}], "start": 27, "title": "in Campinas; dbSNP:rs281864822\nPosition: 27-27 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002748", "description": "in Hekinan; dbSNP:rs281865556", "alternativeSequence": "D", "begin": "28", "end": 28, "molecule": "", "start": 28, "title": "in Hekinan; dbSNP:rs281865556\nPosition: 28-28 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002749", "description": "in Fort Worth; dbSNP:rs281864823", "alternativeSequence": "G", "begin": "28", "end": 28, "molecule": "", "start": 28, "title": "in Fort Worth; dbSNP:rs281864823\nPosition: 28-28 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002750", "description": "in Spanish town; dbSNP:rs281864823", "alternativeSequence": "V", "begin": "28", "end": 28, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "2752146", "url": "http://www.ncbi.nlm.nih.gov/pubmed/2752146", "alternativeUrl": "https://europepmc.org/abstract/MED/2752146"}}], "start": 28, "title": "in Spanish town; dbSNP:rs281864823\nPosition: 28-28 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002751", "description": "in O-Padova; dbSNP:rs111033605", "alternativeSequence": "K", "begin": "31", "end": 31, "molecule": "", "start": 31, "title": "in O-Padova; dbSNP:rs111033605\nPosition: 31-31 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_025002", "description": "causes alpha-thalassemia; dbSNP:rs281864543", "alternativeSequence": "K", "begin": "32", "end": 32, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "11410421", "url": "http://www.ncbi.nlm.nih.gov/pubmed/11410421", "alternativeUrl": "https://europepmc.org/abstract/MED/11410421"}}], "start": 32, "title": "causes alpha-thalassemia; dbSNP:rs281864543\nPosition: 32-32 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002752", "description": "in Prato; unstable; dbSNP:rs111033606", "alternativeSequence": "S", "begin": "32", "end": 32, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "486536", "url": "http://www.ncbi.nlm.nih.gov/pubmed/486536", "alternativeUrl": "https://europepmc.org/abstract/MED/486536"}}], "start": 32, "title": "in Prato; unstable; dbSNP:rs111033606\nPosition: 32-32 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002753", "description": "in Queens/Ogi; dbSNP:rs281864825", "alternativeSequence": "R", "begin": "35", "end": 35, "molecule": "", "start": 35, "title": "in Queens/Ogi; dbSNP:rs281864825\nPosition: 35-35 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002755", "description": "in Catonsville", "alternativeSequence": "PE", "begin": "38", "end": 38, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "8448109", "url": "http://www.ncbi.nlm.nih.gov/pubmed/8448109", "alternativeUrl": "https://europepmc.org/abstract/MED/8448109"}}], "start": 38, "title": "in Catonsville\nPosition: 38-38 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002754", "description": "in Bourmedes; dbSNP:rs281864826", "alternativeSequence": "R", "begin": "38", "end": 38, "molecule": "", "start": 38, "title": "in Bourmedes; dbSNP:rs281864826\nPosition: 38-38 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002756", "description": "in Kanagawa; O(2) affinity up; dbSNP:rs281864828", "alternativeSequence": "M", "begin": "41", "end": 41, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1634355", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1634355", "alternativeUrl": "https://europepmc.org/abstract/MED/1634355"}}], "start": 41, "title": "in Kanagawa; O(2) affinity up; dbSNP:rs281864828\nPosition: 41-41 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002757", "description": "in Miyano; O(2) affinity up; dbSNP:rs281860623", "alternativeSequence": "S", "begin": "42", "end": 42, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "2634665", "url": "http://www.ncbi.nlm.nih.gov/pubmed/2634665", "alternativeUrl": "https://europepmc.org/abstract/MED/2634665"}}], "start": 42, "title": "in Miyano; O(2) affinity up; dbSNP:rs281860623\nPosition: 42-42 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002758", "description": "in Hirosaki; unstable; dbSNP:rs41491146", "alternativeSequence": "L", "begin": "44", "end": 44, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1182166", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1182166", "alternativeUrl": "https://europepmc.org/abstract/MED/1182166"}}], "start": 44, "title": "in Hirosaki; unstable; dbSNP:rs41491146\nPosition: 44-44 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002759", "description": "in Milledgeville; O(2) affinity up; dbSNP:rs33978134 and dbSNP:rs281864830", "alternativeSequence": "L", "begin": "45", "end": 45, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7213661", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7213661", "alternativeUrl": "https://europepmc.org/abstract/MED/7213661"}}], "start": 45, "title": "in Milledgeville; O(2) affinity up; dbSNP:rs33978134 and dbSNP:rs281864830\nPosition: 45-45 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002760", "description": "in Kawachi; O(2) affinity up; dbSNP:rs281864830", "alternativeSequence": "R", "begin": "45", "end": 45, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7068434", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7068434", "alternativeUrl": "https://europepmc.org/abstract/MED/7068434"}}], "start": 45, "title": "in Kawachi; O(2) affinity up; dbSNP:rs281864830\nPosition: 45-45 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002761", "description": "in Bari; dbSNP:rs281860624", "alternativeSequence": "Q", "begin": "46", "end": 46, "molecule": "", "start": 46, "title": "in Bari; dbSNP:rs281860624\nPosition: 46-46 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002762", "description": "in Fort de France; O(2) affinity up; dbSNP:rs281864831", "alternativeSequence": "R", "begin": "46", "end": 46, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "2752146", "url": "http://www.ncbi.nlm.nih.gov/pubmed/2752146", "alternativeUrl": "https://europepmc.org/abstract/MED/2752146"}}], "start": 46, "title": "in Fort de France; O(2) affinity up; dbSNP:rs281864831\nPosition: 46-46 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002763", "description": "in Cordele; unstable; dbSNP:rs281864833", "alternativeSequence": "A", "begin": "48", "end": 48, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "6547117", "url": "http://www.ncbi.nlm.nih.gov/pubmed/6547117", "alternativeUrl": "https://europepmc.org/abstract/MED/6547117"}}], "start": 48, "title": "in Cordele; unstable; dbSNP:rs281864833\nPosition: 48-48 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002764", "description": "in Kokura; also in Umi/Michigan; unstable; dbSNP:rs281864833", "alternativeSequence": "G", "begin": "48", "end": 48, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7068437", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7068437", "alternativeUrl": "https://europepmc.org/abstract/MED/7068437"}}], "start": 48, "title": "in Kokura; also in Umi/Michigan; unstable; dbSNP:rs281864833\nPosition: 48-48 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002765", "description": "in Hasharon/Sinai; unstable; dbSNP:rs281864834", "alternativeSequence": "H", "begin": "48", "end": 48, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "5780195", "url": "http://www.ncbi.nlm.nih.gov/pubmed/5780195", "alternativeUrl": "https://europepmc.org/abstract/MED/5780195"}}], "start": 48, "title": "in Hasharon/Sinai; unstable; dbSNP:rs281864834\nPosition: 48-48 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002766", "description": "in Kurdistan; dbSNP:rs281864834", "alternativeSequence": "Y", "begin": "48", "end": 48, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "8195005", "url": "http://www.ncbi.nlm.nih.gov/pubmed/8195005", "alternativeUrl": "https://europepmc.org/abstract/MED/8195005"}}], "start": 48, "title": "in Kurdistan; dbSNP:rs281864834\nPosition: 48-48 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002767", "description": "in Montgomery; dbSNP:rs41392146", "alternativeSequence": "R", "begin": "49", "end": 49, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1115799", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1115799", "alternativeUrl": "https://europepmc.org/abstract/MED/1115799"}}], "start": 49, "title": "in Montgomery; dbSNP:rs41392146\nPosition: 49-49 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002768", "description": "in Savaria; dbSNP:rs41518249", "alternativeSequence": "R", "begin": "50", "end": 50, "molecule": "", "start": 50, "title": "in Savaria; dbSNP:rs41518249\nPosition: 50-50 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002769", "description": "in Aichi; slightly unstable; dbSNP:rs281864835", "alternativeSequence": "R", "begin": "51", "end": 51, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "6714429", "url": "http://www.ncbi.nlm.nih.gov/pubmed/6714429", "alternativeUrl": "https://europepmc.org/abstract/MED/6714429"}}], "start": 51, "title": "in Aichi; slightly unstable; dbSNP:rs281864835\nPosition: 51-51 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002770", "description": "in J-Abidjan; dbSNP:rs281864836", "alternativeSequence": "D", "begin": "52", "end": 52, "molecule": "", "start": 52, "title": "in J-Abidjan; dbSNP:rs281864836\nPosition: 52-52 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002771", "description": "in Russ; dbSNP:rs281864837", "alternativeSequence": "R", "begin": "52", "end": 52, "molecule": "", "start": 52, "title": "in Russ; dbSNP:rs281864837\nPosition: 52-52 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002772", "description": "in J-Rovigo; unstable; dbSNP:rs281864838", "alternativeSequence": "D", "begin": "54", "end": 54, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "4824923", "url": "http://www.ncbi.nlm.nih.gov/pubmed/4824923", "alternativeUrl": "https://europepmc.org/abstract/MED/4824923"}}], "start": 54, "title": "in J-Rovigo; unstable; dbSNP:rs281864838\nPosition: 54-54 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002773", "description": "in Hikoshima/Shimonoseki; dbSNP:rs281864839", "alternativeSequence": "R", "begin": "55", "end": 55, "molecule": "", "start": 55, "title": "in Hikoshima/Shimonoseki; dbSNP:rs281864839\nPosition: 55-55 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002774", "description": "in Port Huron; dbSNP:rs281864841", "alternativeSequence": "R", "begin": "57", "end": 57, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1802882", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1802882", "alternativeUrl": "https://europepmc.org/abstract/MED/1802882"}}], "start": 57, "title": "in Port Huron; dbSNP:rs281864841\nPosition: 57-57 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002775", "description": "in Thailand; dbSNP:rs281864841", "alternativeSequence": "T", "begin": "57", "end": 57, "molecule": "", "start": 57, "title": "in Thailand; dbSNP:rs281864841\nPosition: 57-57 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002776", "description": "in L-Persian Gulf; dbSNP:rs281864843", "alternativeSequence": "R", "begin": "58", "end": 58, "molecule": "", "start": 58, "title": "in L-Persian Gulf; dbSNP:rs281864843\nPosition: 58-58 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_025388", "description": "in Boghe; dbSNP:rs41378349", "alternativeSequence": "Q", "begin": "59", "end": 59, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "10569723", "url": "http://www.ncbi.nlm.nih.gov/pubmed/10569723", "alternativeUrl": "https://europepmc.org/abstract/MED/10569723"}}], "start": 59, "title": "in Boghe; dbSNP:rs41378349\nPosition: 59-59 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002777", "description": "in M-Boston/M-Osaka; O(2) affinity down; dbSNP:rs281864845", "alternativeSequence": "Y", "begin": "59", "end": 59, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "4521212", "url": "http://www.ncbi.nlm.nih.gov/pubmed/4521212", "alternativeUrl": "https://europepmc.org/abstract/MED/4521212"}}], "start": 59, "title": "in M-Boston/M-Osaka; O(2) affinity down; dbSNP:rs281864845\nPosition: 59-59 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002778", "description": "in Adana; unstable; causes alpha-thalassemia; dbSNP:rs28928878", "alternativeSequence": "D", "begin": "60", "end": 60, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "8237999", "url": "http://www.ncbi.nlm.nih.gov/pubmed/8237999", "alternativeUrl": "https://europepmc.org/abstract/MED/8237999"}}], "start": 60, "title": "in Adana; unstable; causes alpha-thalassemia; dbSNP:rs28928878\nPosition: 60-60 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002779", "description": "in Tottori; unstable; dbSNP:rs281864846", "alternativeSequence": "V", "begin": "60", "end": 60, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7275660", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7275660", "alternativeUrl": "https://europepmc.org/abstract/MED/7275660"}}], "start": 60, "title": "in Tottori; unstable; dbSNP:rs281864846\nPosition: 60-60 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002780", "description": "in Zambia; dbSNP:rs281860659 and dbSNP:rs111033598", "alternativeSequence": "N", "begin": "61", "end": 61, "molecule": "", "start": 61, "title": "in Zambia; dbSNP:rs281860659 and dbSNP:rs111033598\nPosition: 61-61 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002781", "description": "in Clinic; unstable; causes alpha-thalassemia", "alternativeSequence": "", "begin": "61", "end": 61, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "10206681", "url": "http://www.ncbi.nlm.nih.gov/pubmed/10206681", "alternativeUrl": "https://europepmc.org/abstract/MED/10206681"}}], "start": 61, "title": "in Clinic; unstable; causes alpha-thalassemia\nPosition: 61-61 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002782", "description": "in J-Buda; dbSNP:rs33985574", "alternativeSequence": "N", "begin": "62", "end": 62, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "Citation", "id": "Ref.83", "url": "https://www.uniprot.org/uniprot/P69905#ref83"}}], "start": 62, "title": "in J-Buda; dbSNP:rs33985574\nPosition: 62-62 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002783", "description": "in J-Anatolia; dbSNP:rs281865558", "alternativeSequence": "T", "begin": "62", "end": 62, "molecule": "", "start": 62, "title": "in J-Anatolia; dbSNP:rs281865558\nPosition: 62-62 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002784", "description": "in Evans; unstable; dbSNP:rs41515649", "alternativeSequence": "M", "begin": "63", "end": 63, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "2606724", "url": "http://www.ncbi.nlm.nih.gov/pubmed/2606724", "alternativeUrl": "https://europepmc.org/abstract/MED/2606724"}}, {"code": "ECO:0000269", "source": {"name": "Citation", "id": "Ref.11", "url": "https://www.uniprot.org/uniprot/P69905#ref11"}}], "start": 63, "title": "in Evans; unstable; dbSNP:rs41515649\nPosition: 63-63 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_066401", "description": "in HBH; hemoglobin Aghia Sophia", "alternativeSequence": "", "begin": "63", "end": 63, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "10569720", "url": "http://www.ncbi.nlm.nih.gov/pubmed/10569720", "alternativeUrl": "https://europepmc.org/abstract/MED/10569720"}}], "start": 63, "title": "in HBH; hemoglobin Aghia Sophia\nPosition: 63-63 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002785", "description": "in Pontoise; unstable; dbSNP:rs34502246", "alternativeSequence": "D", "begin": "64", "end": 64, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "849454", "url": "http://www.ncbi.nlm.nih.gov/pubmed/849454", "alternativeUrl": "https://europepmc.org/abstract/MED/849454"}}], "start": 64, "title": "in Pontoise; unstable; dbSNP:rs34502246\nPosition: 64-64 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002786", "description": "in Persepolis; dbSNP:rs33984024", "alternativeSequence": "Y", "begin": "65", "end": 65, "molecule": "", "start": 65, "title": "in Persepolis; dbSNP:rs33984024\nPosition: 65-65 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002787", "description": "in G-Philadelphia; dbSNP:rs1060339", "alternativeSequence": "K", "begin": "69", "end": 69, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "Citation", "id": "Ref.12", "url": "https://www.uniprot.org/uniprot/P69905#ref12"}}], "start": 69, "title": "in G-Philadelphia; dbSNP:rs1060339\nPosition: 69-69 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002788", "description": "in J-Habana; dbSNP:rs281864853", "alternativeSequence": "E", "begin": "72", "end": 72, "molecule": "", "start": 72, "title": "in J-Habana; dbSNP:rs281864853\nPosition: 72-72 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002789", "description": "in Ozieri; dbSNP:rs281864853", "alternativeSequence": "V", "begin": "72", "end": 72, "molecule": "", "start": 72, "title": "in Ozieri; dbSNP:rs281864853\nPosition: 72-72 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002790", "description": "in Daneskgah-Teheran; dbSNP:rs281864854", "alternativeSequence": "R", "begin": "73", "end": 73, "molecule": "", "start": 73, "title": "in Daneskgah-Teheran; dbSNP:rs281864854\nPosition: 73-73 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002791", "description": "in Lille; dbSNP:rs281864856", "alternativeSequence": "A", "begin": "75", "end": 75, "molecule": "", "start": 75, "title": "in Lille; dbSNP:rs281864856\nPosition: 75-75 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002792", "description": "in Chapel Hill; dbSNP:rs33921047", "alternativeSequence": "G", "begin": "75", "end": 75, "molecule": "", "start": 75, "title": "in Chapel Hill; dbSNP:rs33921047\nPosition: 75-75 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002793", "description": "in G-Pest; dbSNP:rs281864857", "alternativeSequence": "N", "begin": "75", "end": 75, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "Citation", "id": "Ref.83", "url": "https://www.uniprot.org/uniprot/P69905#ref83"}}], "start": 75, "title": "in G-Pest; dbSNP:rs281864857\nPosition: 75-75 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002794", "description": "in Duan; dbSNP:rs33991223", "alternativeSequence": "A", "begin": "76", "end": 76, "molecule": "", "start": 76, "title": "in Duan; dbSNP:rs33991223\nPosition: 76-76 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002795", "description": "in Q-Iran; dbSNP:rs281864858", "alternativeSequence": "H", "begin": "76", "end": 76, "molecule": "", "start": 76, "title": "in Q-Iran; dbSNP:rs281864858\nPosition: 76-76 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002796", "description": "in Noko; dbSNP:rs33969953", "alternativeSequence": "K", "begin": "77", "end": 77, "molecule": "", "start": 77, "title": "in Noko; dbSNP:rs33969953\nPosition: 77-77 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002797", "description": "in Aztec; dbSNP:rs33969953", "alternativeSequence": "T", "begin": "77", "end": 77, "molecule": "", "start": 77, "title": "in Aztec; dbSNP:rs33969953\nPosition: 77-77 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002798", "description": "in Guizhou; dbSNP:rs281864861", "alternativeSequence": "R", "begin": "78", "end": 78, "molecule": "", "start": 78, "title": "in Guizhou; dbSNP:rs281864861\nPosition: 78-78 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002799", "description": "in Davenport; dbSNP:rs111033602", "alternativeSequence": "H", "begin": "79", "end": 79, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "2101836", "url": "http://www.ncbi.nlm.nih.gov/pubmed/2101836", "alternativeUrl": "https://europepmc.org/abstract/MED/2101836"}}], "start": 79, "title": "in Davenport; dbSNP:rs111033602\nPosition: 79-79 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002800", "description": "in Stanleyville-2; dbSNP:rs281860607", "alternativeSequence": "K", "begin": "79", "end": 79, "molecule": "", "start": 79, "title": "in Stanleyville-2; dbSNP:rs281860607\nPosition: 79-79 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_012662", "description": "in Singapore; dbSNP:rs281860603", "alternativeSequence": "G", "begin": "80", "end": 80, "molecule": "", "start": 80, "title": "in Singapore; dbSNP:rs281860603\nPosition: 80-80 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002801", "description": "in Ann Arbor; unstable; dbSNP:rs281864863", "alternativeSequence": "R", "begin": "81", "end": 81, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "5033650", "url": "http://www.ncbi.nlm.nih.gov/pubmed/5033650", "alternativeUrl": "https://europepmc.org/abstract/MED/5033650"}}], "start": 81, "title": "in Ann Arbor; unstable; dbSNP:rs281864863\nPosition: 81-81 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002802", "description": "in Nigeria; dbSNP:rs281864864", "alternativeSequence": "C", "begin": "82", "end": 82, "molecule": "", "start": 82, "title": "in Nigeria; dbSNP:rs281864864\nPosition: 82-82 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002803", "description": "in Garden State; dbSNP:rs281864865", "alternativeSequence": "D", "begin": "83", "end": 83, "molecule": "", "start": 83, "title": "in Garden State; dbSNP:rs281864865\nPosition: 83-83 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002804", "description": "in Etobicoke; O(2) affinity up; dbSNP:rs281860612", "alternativeSequence": "R", "begin": "85", "end": 85, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "6874377", "url": "http://www.ncbi.nlm.nih.gov/pubmed/6874377", "alternativeUrl": "https://europepmc.org/abstract/MED/6874377"}}], "start": 85, "title": "in Etobicoke; O(2) affinity up; dbSNP:rs281860612\nPosition: 85-85 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002805", "description": "in Inkster; O(2) affinity up; dbSNP:rs41331747", "alternativeSequence": "V", "begin": "86", "end": 86, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "4212045", "url": "http://www.ncbi.nlm.nih.gov/pubmed/4212045", "alternativeUrl": "https://europepmc.org/abstract/MED/4212045"}}], "start": 86, "title": "in Inkster; O(2) affinity up; dbSNP:rs41331747\nPosition: 86-86 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002806", "description": "in Atago; O(2) affinity up; dbSNP:rs281864777", "alternativeSequence": "Y", "begin": "86", "end": 86, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "5115619", "url": "http://www.ncbi.nlm.nih.gov/pubmed/5115619", "alternativeUrl": "https://europepmc.org/abstract/MED/5115619"}}], "start": 86, "title": "in Atago; O(2) affinity up; dbSNP:rs281864777\nPosition: 86-86 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002807", "description": "in Moabit; unstable; dbSNP:rs281864866", "alternativeSequence": "R", "begin": "87", "end": 87, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "108887", "url": "http://www.ncbi.nlm.nih.gov/pubmed/108887", "alternativeUrl": "https://europepmc.org/abstract/MED/108887"}}], "start": 87, "title": "in Moabit; unstable; dbSNP:rs281864866\nPosition: 87-87 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002808", "description": "in Auckland; unstable; dbSNP:rs281864868", "alternativeSequence": "N", "begin": "88", "end": 88, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "9322075", "url": "http://www.ncbi.nlm.nih.gov/pubmed/9322075", "alternativeUrl": "https://europepmc.org/abstract/MED/9322075"}}], "start": 88, "title": "in Auckland; unstable; dbSNP:rs281864868\nPosition: 88-88 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002809", "description": "in Iwata; unstable; dbSNP:rs281864867", "alternativeSequence": "R", "begin": "88", "end": 88, "molecule": "", "start": 88, "title": "in Iwata; unstable; dbSNP:rs281864867\nPosition: 88-88 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002810", "description": "in Loire; O(2) affinity up; dbSNP:rs35239527", "alternativeSequence": "S", "begin": "89", "end": 89, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "3142772", "url": "http://www.ncbi.nlm.nih.gov/pubmed/3142772", "alternativeUrl": "https://europepmc.org/abstract/MED/3142772"}}], "start": 89, "title": "in Loire; O(2) affinity up; dbSNP:rs35239527\nPosition: 89-89 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002811", "description": "in Handa; O(2) affinity up; dbSNP:rs281864873", "alternativeSequence": "M", "begin": "91", "end": 91, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "6815131", "url": "http://www.ncbi.nlm.nih.gov/pubmed/6815131", "alternativeUrl": "https://europepmc.org/abstract/MED/6815131"}}], "start": 91, "title": "in Handa; O(2) affinity up; dbSNP:rs281864873\nPosition: 91-91 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_049272", "description": "in dbSNP:rs281864494", "alternativeSequence": "F", "begin": "92", "end": 92, "molecule": "", "start": 92, "title": "in dbSNP:rs281864494\nPosition: 92-92 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002812", "description": "in Port Phillip; unstable; dbSNP:rs281864874", "alternativeSequence": "P", "begin": "92", "end": 92, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "902765", "url": "http://www.ncbi.nlm.nih.gov/pubmed/902765", "alternativeUrl": "https://europepmc.org/abstract/MED/902765"}}], "start": 92, "title": "in Port Phillip; unstable; dbSNP:rs281864874\nPosition: 92-92 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002813", "description": "in J-Cape Town; O(2) affinity up; dbSNP:rs281864875", "alternativeSequence": "Q", "begin": "93", "end": 93, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "5091982", "url": "http://www.ncbi.nlm.nih.gov/pubmed/5091982", "alternativeUrl": "https://europepmc.org/abstract/MED/5091982"}}, {"code": "ECO:0000269", "source": {"name": "PubMed", "id": "5988206", "url": "http://www.ncbi.nlm.nih.gov/pubmed/5988206", "alternativeUrl": "https://europepmc.org/abstract/MED/5988206"}}], "start": 93, "title": "in J-Cape Town; O(2) affinity up; dbSNP:rs281864875\nPosition: 93-93 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_020775", "description": "in Cemenelum; O(2) affinity up; dbSNP:rs281864876", "alternativeSequence": "W", "begin": "93", "end": 93, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "8148419", "url": "http://www.ncbi.nlm.nih.gov/pubmed/8148419", "alternativeUrl": "https://europepmc.org/abstract/MED/8148419"}}], "start": 93, "title": "in Cemenelum; O(2) affinity up; dbSNP:rs281864876\nPosition: 93-93 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_025389", "description": "in Bassett; markedly reduced oxygen affinity; dbSNP:rs281864879", "alternativeSequence": "A", "begin": "95", "end": 95, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "15495251", "url": "http://www.ncbi.nlm.nih.gov/pubmed/15495251", "alternativeUrl": "https://europepmc.org/abstract/MED/15495251"}}], "start": 95, "title": "in Bassett; markedly reduced oxygen affinity; dbSNP:rs281864879\nPosition: 95-95 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002814", "description": "in Setif; unstable; dbSNP:rs281864878", "alternativeSequence": "Y", "begin": "95", "end": 95, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "4667378", "url": "http://www.ncbi.nlm.nih.gov/pubmed/4667378", "alternativeUrl": "https://europepmc.org/abstract/MED/4667378"}}], "start": 95, "title": "in Setif; unstable; dbSNP:rs281864878\nPosition: 95-95 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002815", "description": "in Denmark Hill; O(2) affinity up; dbSNP:rs281864881", "alternativeSequence": "A", "begin": "96", "end": 96, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "5085669", "url": "http://www.ncbi.nlm.nih.gov/pubmed/5085669", "alternativeUrl": "https://europepmc.org/abstract/MED/5085669"}}], "start": 96, "title": "in Denmark Hill; O(2) affinity up; dbSNP:rs281864881\nPosition: 96-96 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002816", "description": "in Godavari; O(2) affinity up; dbSNP:rs281864881", "alternativeSequence": "T", "begin": "96", "end": 96, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "9494044", "url": "http://www.ncbi.nlm.nih.gov/pubmed/9494044", "alternativeUrl": "https://europepmc.org/abstract/MED/9494044"}}], "start": 96, "title": "in Godavari; O(2) affinity up; dbSNP:rs281864881\nPosition: 96-96 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002817", "description": "in Dallas; O(2) affinity up; dbSNP:rs41338947", "alternativeSequence": "K", "begin": "98", "end": 98, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1390940", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1390940", "alternativeUrl": "https://europepmc.org/abstract/MED/1390940"}}], "start": 98, "title": "in Dallas; O(2) affinity up; dbSNP:rs41338947\nPosition: 98-98 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002818", "description": "in Turriff; dbSNP:rs281864882", "alternativeSequence": "E", "begin": "100", "end": 100, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1634357", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1634357", "alternativeUrl": "https://europepmc.org/abstract/MED/1634357"}}], "start": 100, "title": "in Turriff; dbSNP:rs281864882\nPosition: 100-100 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002819", "description": "in Manitoba; slightly unstable; dbSNP:rs41344646", "alternativeSequence": "R", "begin": "103", "end": 103, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "6547932", "url": "http://www.ncbi.nlm.nih.gov/pubmed/6547932", "alternativeUrl": "https://europepmc.org/abstract/MED/6547932"}}], "start": 103, "title": "in Manitoba; slightly unstable; dbSNP:rs41344646\nPosition: 103-103 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002820", "description": "in Contaldo; unstable; dbSNP:rs63750752", "alternativeSequence": "R", "begin": "104", "end": 104, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "6547932", "url": "http://www.ncbi.nlm.nih.gov/pubmed/6547932", "alternativeUrl": "https://europepmc.org/abstract/MED/6547932"}}], "start": 104, "title": "in Contaldo; unstable; dbSNP:rs63750752\nPosition: 104-104 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_025390", "description": "in Charolles; dbSNP:rs63750073", "alternativeSequence": "Y", "begin": "104", "end": 104, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "10569723", "url": "http://www.ncbi.nlm.nih.gov/pubmed/10569723", "alternativeUrl": "https://europepmc.org/abstract/MED/10569723"}}], "start": 104, "title": "in Charolles; dbSNP:rs63750073\nPosition: 104-104 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002821", "description": "in Suan-Dok; unstable; causes alpha-thalassemia; dbSNP:rs41479844", "alternativeSequence": "R", "begin": "110", "end": 110, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "478977", "url": "http://www.ncbi.nlm.nih.gov/pubmed/478977", "alternativeUrl": "https://europepmc.org/abstract/MED/478977"}}], "start": 110, "title": "in Suan-Dok; unstable; causes alpha-thalassemia; dbSNP:rs41479844\nPosition: 110-110 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002822", "description": "in Petah Tikva; unstable; causes alpha-thalassemia; dbSNP:rs28928889", "alternativeSequence": "D", "begin": "111", "end": 111, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7470621", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7470621", "alternativeUrl": "https://europepmc.org/abstract/MED/7470621"}}], "start": 111, "title": "in Petah Tikva; unstable; causes alpha-thalassemia; dbSNP:rs28928889\nPosition: 111-111 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002823", "description": "in Hopkins-II; unstable; dbSNP:rs281864885", "alternativeSequence": "D", "begin": "113", "end": 113, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "5288820", "url": "http://www.ncbi.nlm.nih.gov/pubmed/5288820", "alternativeUrl": "https://europepmc.org/abstract/MED/5288820"}}], "start": 113, "title": "in Hopkins-II; unstable; dbSNP:rs281864885\nPosition: 113-113 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002824", "description": "in Twin Peaks; dbSNP:rs281860618", "alternativeSequence": "H", "begin": "114", "end": 114, "molecule": "", "start": 114, "title": "in Twin Peaks; dbSNP:rs281860618\nPosition: 114-114 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002825", "description": "in Nouakchott; dbSNP:rs267607269", "alternativeSequence": "L", "begin": "115", "end": 115, "molecule": "", "start": 115, "title": "in Nouakchott; dbSNP:rs267607269\nPosition: 115-115 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002826", "description": "in Chiapas; dbSNP:rs267607269", "alternativeSequence": "R", "begin": "115", "end": 115, "molecule": "", "start": 115, "title": "in Chiapas; dbSNP:rs267607269\nPosition: 115-115 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002827", "description": "in Melusine; dbSNP:rs281864887", "alternativeSequence": "S", "begin": "115", "end": 115, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "8294199", "url": "http://www.ncbi.nlm.nih.gov/pubmed/8294199", "alternativeUrl": "https://europepmc.org/abstract/MED/8294199"}}], "start": 115, "title": "in Melusine; dbSNP:rs281864887\nPosition: 115-115 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002828", "description": "in J-Tongariki; dbSNP:rs281864888", "alternativeSequence": "D", "begin": "116", "end": 116, "molecule": "", "start": 116, "title": "in J-Tongariki; dbSNP:rs281864888\nPosition: 116-116 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002829", "description": "in Ube-4; dbSNP:rs281864946", "alternativeSequence": "A", "begin": "117", "end": 117, "molecule": "", "start": 117, "title": "in Ube-4; dbSNP:rs281864946\nPosition: 117-117 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002830", "description": "in Zaire", "alternativeSequence": "EHLPAE", "begin": "117", "end": 117, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1511986", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1511986", "alternativeUrl": "https://europepmc.org/abstract/MED/1511986"}}], "start": 117, "title": "in Zaire\nPosition: 117-117 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002831", "description": "in Phnom Penh", "alternativeSequence": "FI", "begin": "118", "end": 118, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "9452028", "url": "http://www.ncbi.nlm.nih.gov/pubmed/9452028", "alternativeUrl": "https://europepmc.org/abstract/MED/9452028"}}], "start": 118, "title": "in Phnom Penh\nPosition: 118-118 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002832", "description": "in Grady", "alternativeSequence": "TEFT", "begin": "119", "end": 119, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "4528583", "url": "http://www.ncbi.nlm.nih.gov/pubmed/4528583", "alternativeUrl": "https://europepmc.org/abstract/MED/4528583"}}], "start": 119, "title": "in Grady\nPosition: 119-119 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002833", "description": "in J-Meerut/J-Birmingham; dbSNP:rs36075744", "alternativeSequence": "E", "begin": "121", "end": 121, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7713747", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7713747", "alternativeUrl": "https://europepmc.org/abstract/MED/7713747"}}], "start": 121, "title": "in J-Meerut/J-Birmingham; dbSNP:rs36075744\nPosition: 121-121 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002834", "description": "in Owari; dbSNP:rs35187567", "alternativeSequence": "M", "begin": "122", "end": 122, "molecule": "", "start": 122, "title": "in Owari; dbSNP:rs35187567\nPosition: 122-122 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002835", "description": "in Westmead; dbSNP:rs41479347", "alternativeSequence": "Q", "begin": "123", "end": 123, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1686260", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1686260", "alternativeUrl": "https://europepmc.org/abstract/MED/1686260"}}], "start": 123, "title": "in Westmead; dbSNP:rs41479347\nPosition: 123-123 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002836", "description": "in Quong Sze; causes alpha-thalassemia; dbSNP:rs41397847", "alternativeSequence": "P", "begin": "126", "end": 126, "molecule": "", "start": 126, "title": "in Quong Sze; causes alpha-thalassemia; dbSNP:rs41397847\nPosition: 126-126 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_025391", "description": "in Plasencia; family with moderate microcytosis and hypochromia; dbSNP:rs41397847", "alternativeSequence": "R", "begin": "126", "end": 126, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "15921163", "url": "http://www.ncbi.nlm.nih.gov/pubmed/15921163", "alternativeUrl": "https://europepmc.org/abstract/MED/15921163"}}], "start": 126, "title": "in Plasencia; family with moderate microcytosis and hypochromia; dbSNP:rs41397847\nPosition: 126-126 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_025392", "description": "in West One; dbSNP:rs33957766", "alternativeSequence": "G", "begin": "127", "end": 127, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "14576901", "url": "http://www.ncbi.nlm.nih.gov/pubmed/14576901", "alternativeUrl": "https://europepmc.org/abstract/MED/14576901"}}], "start": 127, "title": "in West One; dbSNP:rs33957766\nPosition: 127-127 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002837", "description": "in Fukutomi; O(2) affinity up; dbSNP:rs33957766", "alternativeSequence": "V", "begin": "127", "end": 127, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "2079432", "url": "http://www.ncbi.nlm.nih.gov/pubmed/2079432", "alternativeUrl": "https://europepmc.org/abstract/MED/2079432"}}], "start": 127, "title": "in Fukutomi; O(2) affinity up; dbSNP:rs33957766\nPosition: 127-127 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002838", "description": "in Montefiore; O(2) affinity up; dbSNP:rs33933481", "alternativeSequence": "Y", "begin": "127", "end": 127, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "8798486", "url": "http://www.ncbi.nlm.nih.gov/pubmed/8798486", "alternativeUrl": "https://europepmc.org/abstract/MED/8798486"}}], "start": 127, "title": "in Montefiore; O(2) affinity up; dbSNP:rs33933481\nPosition: 127-127 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002839", "description": "in Jackson; dbSNP:rs33972894", "alternativeSequence": "N", "begin": "128", "end": 128, "molecule": "", "start": 128, "title": "in Jackson; dbSNP:rs33972894\nPosition: 128-128 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002840", "description": "in Tunis-Bizerte; unstable; causes alpha-thalassemia; dbSNP:rs281864889", "alternativeSequence": "P", "begin": "130", "end": 130, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7786798", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7786798", "alternativeUrl": "https://europepmc.org/abstract/MED/7786798"}}], "start": 130, "title": "in Tunis-Bizerte; unstable; causes alpha-thalassemia; dbSNP:rs281864889\nPosition: 130-130 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002842", "description": "in Yuda; O(2) affinity down; dbSNP:rs41528545", "alternativeSequence": "D", "begin": "131", "end": 131, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1428950", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1428950", "alternativeUrl": "https://europepmc.org/abstract/MED/1428950"}}], "start": 131, "title": "in Yuda; O(2) affinity down; dbSNP:rs41528545\nPosition: 131-131 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002841", "description": "in Sun Prairie; unstable; dbSNP:rs41529844", "alternativeSequence": "P", "begin": "131", "end": 131, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "2079430", "url": "http://www.ncbi.nlm.nih.gov/pubmed/2079430", "alternativeUrl": "https://europepmc.org/abstract/MED/2079430"}}], "start": 131, "title": "in Sun Prairie; unstable; dbSNP:rs41529844\nPosition: 131-131 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002843", "description": "in Questembert; highly unstable; causes alpha-thalassemia; dbSNP:rs63751417", "alternativeSequence": "P", "begin": "132", "end": 132, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "8493987", "url": "http://www.ncbi.nlm.nih.gov/pubmed/8493987", "alternativeUrl": "https://europepmc.org/abstract/MED/8493987"}}], "start": 132, "title": "in Questembert; highly unstable; causes alpha-thalassemia; dbSNP:rs63751417\nPosition: 132-132 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002844", "description": "in Val de Marne; O(2) affinity up; dbSNP:rs56308100 and dbSNP:rs55948437", "alternativeSequence": "R", "begin": "134", "end": 134, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "8294200", "url": "http://www.ncbi.nlm.nih.gov/pubmed/8294200", "alternativeUrl": "https://europepmc.org/abstract/MED/8294200"}}], "start": 134, "title": "in Val de Marne; O(2) affinity up; dbSNP:rs56308100 and dbSNP:rs55948437\nPosition: 134-134 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002845", "description": "in Pavie; dbSNP:rs63749809", "alternativeSequence": "E", "begin": "136", "end": 136, "molecule": "", "start": 136, "title": "in Pavie; dbSNP:rs63749809\nPosition: 136-136 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002846", "description": "in Chicago; dbSNP:rs41364652", "alternativeSequence": "M", "begin": "137", "end": 137, "molecule": "", "start": 137, "title": "in Chicago; dbSNP:rs41364652\nPosition: 137-137 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002847", "description": "in Bibba; unstable; causes alpha-thalassemia; dbSNP:rs41469945", "alternativeSequence": "P", "begin": "137", "end": 137, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "5440849", "url": "http://www.ncbi.nlm.nih.gov/pubmed/5440849", "alternativeUrl": "https://europepmc.org/abstract/MED/5440849"}}], "start": 137, "title": "in Bibba; unstable; causes alpha-thalassemia; dbSNP:rs41469945\nPosition: 137-137 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_035242", "description": "in Toyama; dbSNP:rs41469945", "alternativeSequence": "R", "begin": "137", "end": 137, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "2833478", "url": "http://www.ncbi.nlm.nih.gov/pubmed/2833478", "alternativeUrl": "https://europepmc.org/abstract/MED/2833478"}}], "start": 137, "title": "in Toyama; dbSNP:rs41469945\nPosition: 137-137 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002848", "description": "in Attleboro; O(2) affinity up; dbSNP:rs63750801", "alternativeSequence": "P", "begin": "139", "end": 139, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "2108715", "url": "http://www.ncbi.nlm.nih.gov/pubmed/2108715", "alternativeUrl": "https://europepmc.org/abstract/MED/2108715"}}], "start": 139, "title": "in Attleboro; O(2) affinity up; dbSNP:rs63750801\nPosition: 139-139 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002849", "description": "in Hanamaki; O(2) affinity up; dbSNP:rs41361546", "alternativeSequence": "E", "begin": "140", "end": 140, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1634363", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1634363", "alternativeUrl": "https://europepmc.org/abstract/MED/1634363"}}], "start": 140, "title": "in Hanamaki; O(2) affinity up; dbSNP:rs41361546\nPosition: 140-140 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002850", "description": "in Tokoname; O(2) affinity up; dbSNP:rs56348461", "alternativeSequence": "T", "begin": "140", "end": 140, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "6188720", "url": "http://www.ncbi.nlm.nih.gov/pubmed/6188720", "alternativeUrl": "https://europepmc.org/abstract/MED/6188720"}}], "start": 140, "title": "in Tokoname; O(2) affinity up; dbSNP:rs56348461\nPosition: 140-140 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002851", "description": "in Rouen/Ethiopia; O(2) affinity up; dbSNP:rs55870409", "alternativeSequence": "H", "begin": "141", "end": 141, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1390944", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1390944", "alternativeUrl": "https://europepmc.org/abstract/MED/1390944"}}, {"code": "ECO:0000269", "source": {"name": "PubMed", "id": "1428951", "url": "http://www.ncbi.nlm.nih.gov/pubmed/1428951", "alternativeUrl": "https://europepmc.org/abstract/MED/1428951"}}], "start": 141, "title": "in Rouen/Ethiopia; O(2) affinity up; dbSNP:rs55870409\nPosition: 141-141 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002852", "description": "in Nunobiki; O(2) affinity up; dbSNP:rs63750134", "alternativeSequence": "C", "begin": "142", "end": 142, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "3973024", "url": "http://www.ncbi.nlm.nih.gov/pubmed/3973024", "alternativeUrl": "https://europepmc.org/abstract/MED/3973024"}}], "start": 142, "title": "in Nunobiki; O(2) affinity up; dbSNP:rs63750134\nPosition: 142-142 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002854", "description": "in Suresnes; O(2) affinity up; dbSNP:rs33935328", "alternativeSequence": "H", "begin": "142", "end": 142, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7410435", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7410435", "alternativeUrl": "https://europepmc.org/abstract/MED/7410435"}}], "start": 142, "title": "in Suresnes; O(2) affinity up; dbSNP:rs33935328\nPosition: 142-142 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002853", "description": "in Legnano; O(2) affinity up; dbSNP:rs33935328", "alternativeSequence": "L", "begin": "142", "end": 142, "molecule": "", "evidences": [{"code": "ECO:0000269", "source": {"name": "PubMed", "id": "7462179", "url": "http://www.ncbi.nlm.nih.gov/pubmed/7462179", "alternativeUrl": "https://europepmc.org/abstract/MED/7462179"}}], "start": 142, "title": "in Legnano; O(2) affinity up; dbSNP:rs33935328\nPosition: 142-142 aa\nSize: 1 aa"}, {"type": "VARIANT", "category": "VARIANTS", "ftId": "VAR_002855", "description": "in Singapore; dbSNP:rs33935328", "alternativeSequence": "P", "begin": "142", "end": 142, "molecule": "", "start": 142, "title": "in Singapore; dbSNP:rs33935328\nPosition: 142-142 aa\nSize: 1 aa"}, {"type": "CONFLICT", "category": "SEQUENCE_INFORMATION", "description": "in Ref. 13; BAD97112", "alternativeSequence": "H", "begin": "10", "end": 10, "molecule": "", "evidences": [{"code": "ECO:0000305"}], "start": 10, "title": "in Ref. 13; BAD97112\nPosition: 10-10 aa\nSize: 1 aa"}, {"type": "HELIX", "category": "STRUCTURAL", "begin": "5", "end": 18, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "2W72", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/2W72"}}], "start": 5, "title": "HELIX\nPosition: 5-18 aa\nSize: 14 aa"}, {"type": "HELIX", "category": "STRUCTURAL", "begin": "19", "end": 21, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "2W72", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/2W72"}}], "start": 19, "title": "HELIX\nPosition: 19-21 aa\nSize: 3 aa"}, {"type": "HELIX", "category": "STRUCTURAL", "begin": "22", "end": 36, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "2W72", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/2W72"}}], "start": 22, "title": "HELIX\nPosition: 22-36 aa\nSize: 15 aa"}, {"type": "HELIX", "category": "STRUCTURAL", "begin": "38", "end": 43, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "2W72", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/2W72"}}], "start": 38, "title": "HELIX\nPosition: 38-43 aa\nSize: 6 aa"}, {"type": "STRAND", "category": "STRUCTURAL", "begin": "45", "end": 47, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "1M9P", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/1M9P"}}], "start": 45, "title": "STRAND\nPosition: 45-47 aa\nSize: 3 aa"}, {"type": "STRAND", "category": "STRUCTURAL", "begin": "50", "end": 52, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "6XDT", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/6XDT"}}], "start": 50, "title": "STRAND\nPosition: 50-52 aa\nSize: 3 aa"}, {"type": "HELIX", "category": "STRUCTURAL", "begin": "54", "end": 72, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "2W72", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/2W72"}}], "start": 54, "title": "HELIX\nPosition: 54-72 aa\nSize: 19 aa"}, {"type": "TURN", "category": "STRUCTURAL", "begin": "73", "end": 75, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "2W72", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/2W72"}}], "start": 73, "title": "TURN\nPosition: 73-75 aa\nSize: 3 aa"}, {"type": "HELIX", "category": "STRUCTURAL", "begin": "77", "end": 80, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "2W72", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/2W72"}}], "start": 77, "title": "HELIX\nPosition: 77-80 aa\nSize: 4 aa"}, {"type": "HELIX", "category": "STRUCTURAL", "begin": "82", "end": 90, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "2W72", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/2W72"}}], "start": 82, "title": "HELIX\nPosition: 82-90 aa\nSize: 9 aa"}, {"type": "TURN", "category": "STRUCTURAL", "begin": "91", "end": 93, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "2M6Z", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/2M6Z"}}], "start": 91, "title": "TURN\nPosition: 91-93 aa\nSize: 3 aa"}, {"type": "HELIX", "category": "STRUCTURAL", "begin": "97", "end": 113, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "2W72", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/2W72"}}], "start": 97, "title": "HELIX\nPosition: 97-113 aa\nSize: 17 aa"}, {"type": "TURN", "category": "STRUCTURAL", "begin": "115", "end": 117, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "2W72", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/2W72"}}], "start": 115, "title": "TURN\nPosition: 115-117 aa\nSize: 3 aa"}, {"type": "HELIX", "category": "STRUCTURAL", "begin": "120", "end": 138, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "2W72", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/2W72"}}], "start": 120, "title": "HELIX\nPosition: 120-138 aa\nSize: 19 aa"}, {"type": "HELIX", "category": "STRUCTURAL", "begin": "139", "end": 141, "molecule": "", "evidences": [{"code": "ECO:0007829", "source": {"name": "PDB", "id": "6HK2", "url": "https://www.ebi.ac.uk/pdbe-srv/view/entry/6HK2"}}], "start": 139, "title": "HELIX\nPosition: 139-141 aa\nSize: 3 aa"}];
+        const sequenceLength = 142;
+        const chargeProfileData = {"ph_values": [2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5.0, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6.0, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 7.0, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 8.0, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 9.0, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 10.0, 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 11.0, 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 12.0], "charges": [24.886718883667893, 24.85785007507948, 24.82176915182568, 24.77675499568801, 24.720719538295228, 24.651152625989738, 24.565070725457282, 24.458977021396727, 24.328843546432008, 24.17012918455782, 23.977850075644707, 23.746720246954496, 23.47137919793492, 23.146718614987744, 22.768311213317258, 22.332929329462793, 21.83911757722109, 21.287752571081356, 20.682488920001674, 20.02996865444809, 19.339680838709807, 18.6234124165819, 17.894321840993683, 17.165761249222964, 16.45003196880956, 15.757262034610127, 15.094552508986544, 14.4654775395706, 13.869963277126844, 13.304522978832631, 12.762792923734022, 12.23629817946793, 11.715378420285223, 11.190214986987572, 10.651907904075912, 10.09354212211741, 9.511150842938326, 8.90444081282915, 8.277116595588083, 7.6366618236227275, 6.99352633449133, 6.3598156009476305, 5.747729504364006, 5.1680810638905434, 4.6291977532471105, 4.136379896947346, 3.6919219305325885, 3.2955625354437394, 2.9451609419656286, 2.637401952821616, 2.368387501713789, 2.134046324055509, 1.930359658635851, 1.7534443557875043, 1.5995507919228888, 1.465026380986492, 1.3462767442014254, 1.2397368062904182, 1.1418504495340063, 1.0490518224311138, 0.9577420732914721, 0.8642589208249447, 0.7648403342525096, 0.655586055897329, 0.5324211288077443, 0.39106407286040934, 0.22699967589729297, 0.03545429086116236, -0.18862711241885677, -0.45059491411467434, -0.7560764304415759, -1.110880063971475, -1.5207584329429693, -1.9909645676059888, -2.5255618918446547, -3.1265103752507493, -3.792641727090249, -4.518733663149167, -5.2949592929850855, -6.106978007228406, -6.936819372544511, -7.76450493780041, -8.570123442458602, -9.335922264693513, -10.047975786981102, -10.697139203576487, -11.27921984060017, -11.794498287793239, -12.246841642992187, -12.642660460561071, -12.989901461104534, -13.297183919468752, -13.573112802624854, -13.825752607571628, -14.06222503856171, -14.28839641765498, -14.508639384413966, -14.725678764954205, -14.940552572044647, -15.152724591518862, -15.360367381753198], "isoelectric_point": 8.716915321350097, "charge_at_ph_7_4": 1.5995507919228888};
+
+        console.log("=== Protein Report ===");
+        console.log("Sequence:", sequence.length, "aa");
+        console.log("Features:", features.length);
+
+        document.getElementById('feature-count').textContent = features.length;
+
+        // Initialize charge profile chart
+        if (chargeProfileData && chargeProfileData.ph_values) {
+            initializeChargeProfile(chargeProfileData);
+        }
+        
+        await Promise.all([
+            customElements.whenDefined('nightingale-sequence'),
+            customElements.whenDefined('nightingale-colored-sequence'),
+            customElements.whenDefined('nightingale-track'),
+            customElements.whenDefined('nightingale-navigation'),
+            customElements.whenDefined('nightingale-manager')
+        ]);
+        
+        console.log("✓ Components loaded");
+
+        // Debug: Inspect Nightingale's rendered elements
+        console.log("\n=== NIGHTINGALE DEBUG ===");
+        const regionTrack = document.querySelector("#region");
+        if (regionTrack) {
+            console.log("Region track found:", regionTrack);
+            console.log("Track properties:", {
+                tagName: regionTrack.tagName,
+                id: regionTrack.id,
+                hasChildNodes: regionTrack.childNodes.length,
+                hasSlot: !!regionTrack.querySelector('slot'),
+                shadowRoot: !!regionTrack.shadowRoot
+            });
+
+            // Try to access shadow DOM
+            if (regionTrack.shadowRoot) {
+                const shadowElements = regionTrack.shadowRoot.querySelectorAll('*');
+                console.log("Shadow DOM elements:", shadowElements.length);
+
+                // Look for SVG or canvas elements
+                const svgElements = regionTrack.shadowRoot.querySelectorAll('svg');
+                const canvasElements = regionTrack.shadowRoot.querySelectorAll('canvas');
+                console.log("SVG elements in shadow:", svgElements.length);
+                console.log("Canvas elements in shadow:", canvasElements.length);
+
+                if (svgElements.length > 0) {
+                    console.log("Found SVG rendering - features are probably SVG rects/paths");
+                }
+            }
+        }
+        console.log("=== END DEBUG ===\n");
+
+        document.querySelector("#sequence").data = sequence;
+        document.querySelector("#colored-sequence").data = sequence;
+
+        // Display sequence in the sequence section with line breaks for readability
+        const aaSequenceDiv = document.getElementById('aa-sequence');
+        if (aaSequenceDiv) {
+            // Format sequence in groups of 50 characters per line for readability
+            let formattedSequence = '';
+            const chunkSize = 50;
+            for (let i = 0; i < sequence.length; i += chunkSize) {
+                formattedSequence += sequence.substring(i, i + chunkSize) + '\n';
+            }
+            aaSequenceDiv.textContent = formattedSequence.trim();
+        }
+        
+        // Format features with tooltip information and handle overlapping PTMs
+        let rawProcessedFeatures = features.map(ft => {
+            const startStr = ft.start || ft.begin;
+            const endStr = ft.end || startStr;
+            // Convert to numbers for calculation
+            const start = parseInt(startStr);
+            const end = parseInt(endStr);
+            const size = end - start + 1;
+            const featureId = ft.ftId || 'N/A';
+            const description = ft.description || ft.type || 'Unknown feature';
+
+            // Map PTM types to display names for tooltip
+            const ptmTypeNames = {
+                'MOD_RES': 'Modified Residue',
+                'CARBOHYD': 'Glycosylation',
+                'DISULFID': 'Disulfide Bond',
+                'CROSSLNK': 'Cross-link',
+                'LIPID': 'Lipidation'
+            };
+
+            // Create tooltip text
+            let tooltipText = `${description}\nPosition: ${start}-${end} aa\nSize: ${size} aa`;
+
+            // Add PTM type if this is a PTM feature
+            if (ft.category === 'PTM') {
+                const ptmType = ptmTypeNames[ft.type] || ft.type;
+                tooltipText += `\nPTM Type: ${ptmType}`;
+            }
+
+            tooltipText += `\nFeature ID: ${featureId}`;
+
+            return {
+                ...ft,
+                start: start,
+                end: end,
+                title: tooltipText,
+                tooltipContent: tooltipText,
+                label: `${description} (${start}-${end})`,
+                // These will be updated by assignOffsetForOverlappingPTMs
+                rowOffset: 0,
+                totalRowsAtPosition: 1
+            };
+        });
+
+        // Function to detect overlapping PTM features and enhance tooltips
+        // Nightingale's layout="non-overlapping" handles automatic vertical positioning
+        function assignOffsetForOverlappingPTMs(features) {
+            // Only apply tooltip enhancement to PTM features (MOD_RES, CARBOHYD, CROSSLNK, LIPID, DISULFID)
+            const ptmFeatures = features.filter(f => f.category === 'PTM');
+            const nonPTMFeatures = features.filter(f => f.category !== 'PTM');
+
+            // Group PTM features by position (start position) to detect overlaps
+            const featuresByPosition = {};
+            ptmFeatures.forEach(f => {
+                if (!featuresByPosition[f.start]) {
+                    featuresByPosition[f.start] = [];
+                }
+                featuresByPosition[f.start].push(f);
+            });
+
+            // Enhance tooltips for PTM features that have overlapping features at same position
+            ptmFeatures.forEach(f => {
+                const featuresAtPosition = featuresByPosition[f.start];
+                const offset = featuresAtPosition.indexOf(f);
+
+                // Update tooltip to show if multiple PTMs at same position
+                // Nightingale's layout="non-overlapping" will handle automatic vertical positioning
+                if (featuresAtPosition.length > 1) {
+                    f.title += `\n\n⚠️  ${featuresAtPosition.length} PTMs at position ${f.start}`;
+                    f.title += `\n[${offset + 1} of ${featuresAtPosition.length}]`;
+                }
+            });
+
+            // Combine back
+            return [...nonPTMFeatures, ...ptmFeatures];
+        }
+
+        const processedFeatures = assignOffsetForOverlappingPTMs(rawProcessedFeatures);
+        
+        // Helper function to get all PTM features EXCEPT disulfides
+        function getAllPTMFeaturesExceptDisulfides(allFeatures) {
+            // Map PTM feature types to display names
+            const ptmTypeNames = {
+                'MOD_RES': 'Modified Residue',
+                'CARBOHYD': 'Glycosylation',
+                'CROSSLNK': 'Cross-link',
+                'LIPID': 'Lipidation'
+            };
+
+            const ptmFeatures = allFeatures.filter(feature => {
+                // Get all PTMs EXCEPT DISULFID (which has its own track)
+                return feature.category === 'PTM' && feature.type !== 'DISULFID';
+            }).map(feature => ({
+                ...feature,
+                // Ensure type is set for display
+                displayType: ptmTypeNames[feature.type] || feature.type,
+                // Add ftId if not present
+                ftId: feature.ftId || ''
+            }));
+
+            console.log(`getAllPTMFeaturesExceptDisulfides: Found ${ptmFeatures.length} PTM features (excluding DISULFID) from ${allFeatures.length} total features`);
+            if (ptmFeatures.length > 0) {
+                console.log('Sample PTM feature:', ptmFeatures[0]);
+            }
+
+            return ptmFeatures;
+        }
+
+        const trackMap = {
+            'chain': 'CHAIN',
+            'domain': 'DOMAIN',
+            'region': 'REGION',
+            'site': 'SITE',
+            'binding': 'BINDING',
+            'disulfide-bond': 'DISULFID',
+            'beta-strand': 'STRAND',
+            'helix': 'HELIX',
+            'turn': 'TURN',
+            'mod-res': 'PTM_NO_DISULFID'  // All PTMs except disulfides
+        };
+
+        // Store feature data for tooltip lookups
+        const featuresByTrack = {};
+        const svgElementToFeature = new Map();  // Map SVG elements to their feature data
+
+        for (const [trackId, featureType] of Object.entries(trackMap)) {
+            const track = document.querySelector(`#${trackId}`);
+            if (track) {
+                let filteredFeatures;
+
+                // For PTM track, get all PTM features except disulfides
+                if (featureType === 'PTM_NO_DISULFID') {
+                    filteredFeatures = getAllPTMFeaturesExceptDisulfides(processedFeatures);
+                } else {
+                    // For other tracks, filter by specific type
+                    filteredFeatures = processedFeatures.filter(({ type }) => type === featureType);
+                }
+
+                track.data = filteredFeatures;
+                featuresByTrack[trackId] = filteredFeatures;
+
+                console.log(`Track '${trackId}' (${featureType}): ${filteredFeatures.length} features`);
+
+                // Debug: show sample of PTM features if this is the PTM track
+                if (featureType === 'PTM' && filteredFeatures.length > 0) {
+                    console.log(`  → Sample PTM features:`, filteredFeatures.slice(0, 3));
+                }
+
+                // Find SVG elements in the track and attach tooltips to them
+                const svg = track.querySelector('svg.container');
+                if (svg) {
+                    const featureGroups = svg.querySelectorAll('g.feature-group');
+                    console.log(`  → Found ${featureGroups.length} SVG feature elements`);
+
+                    // Map each SVG feature group to its data
+                    featureGroups.forEach((svgGroup, index) => {
+                        const feature = filteredFeatures[index];
+                        if (feature) {
+                            svgElementToFeature.set(svgGroup, feature);
+
+                            // Add hover listeners to SVG element
+                            svgGroup.style.cursor = 'pointer';
+
+                            svgGroup.addEventListener('mouseenter', (e) => {
+                                if (feature.title) {
+                                    showTooltip(e.clientX, e.clientY, feature.title);
+                                }
+                            });
+
+                            svgGroup.addEventListener('mousemove', (e) => {
+                                if (feature.title) {
+                                    showTooltip(e.clientX, e.clientY, feature.title);
+                                }
+                            });
+
+                            svgGroup.addEventListener('mouseleave', () => {
+                                hideTooltip();
+                            });
+                        }
+                    });
+                } else {
+                    console.warn(`  → No SVG found in track '${trackId}'`);
+                }
+            }
+        }
+
+        // Tooltip display functions
+        function showTooltip(clientX, clientY, text) {
+            let tooltip = document.getElementById('feature-tooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'feature-tooltip';
+                tooltip.style.cssText = `
+                    position: fixed;
+                    background: rgba(0,0,0,0.95);
+                    color: white;
+                    padding: 10px 14px;
+                    border-radius: 6px;
+                    font-size: 13px;
+                    white-space: pre-line;
+                    z-index: 10000;
+                    pointer-events: none;
+                    max-width: 350px;
+                    line-height: 1.5;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                    font-family: monospace;
+                `;
+                document.body.appendChild(tooltip);
+            }
+            tooltip.textContent = text;
+            tooltip.style.left = (clientX + 15) + 'px';
+            tooltip.style.top = (clientY + 15) + 'px';
+            tooltip.style.display = 'block';
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('feature-tooltip');
+            if (tooltip) {
+                tooltip.style.display = 'none';
+            }
+        }
+
+        console.log("✓ Report fully loaded");
+        console.log("💡 Hover over colored features to see position, length, and Feature ID!");
+
+        // Function to initialize charge profile chart
+        function initializeChargeProfile(data) {
+            const ctx = document.getElementById('charge-profile-chart');
+            if (!ctx) {
+                console.warn("Chart canvas not found");
+                return;
+            }
+
+            const pi = data.isoelectric_point;
+            const charge74 = data.charge_at_ph_7_4;
+            const phValues = data.ph_values;
+            const charges = data.charges;
+
+            // Update stat cards
+            document.getElementById('pi-value').textContent = pi.toFixed(2);
+            document.getElementById('charge-74-value').textContent = charge74.toFixed(2);
+
+            const minCharge = Math.min(...charges);
+            const maxCharge = Math.max(...charges);
+            document.getElementById('charge-min-value').textContent = minCharge.toFixed(2);
+            document.getElementById('charge-max-value').textContent = maxCharge.toFixed(2);
+
+            // Create Chart.js chart
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: phValues.map(ph => ph.toFixed(1)),
+                    datasets: [
+                        {
+                            label: 'Net Charge',
+                            data: charges,
+                            borderColor: '#2E86AB',
+                            backgroundColor: 'rgba(46, 134, 171, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#2E86AB',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 1,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                font: { size: 12, weight: '600' },
+                                color: '#374151',
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#2E86AB',
+                            borderWidth: 1,
+                            padding: 12,
+                            titleFont: { size: 13, weight: 'bold' },
+                            bodyFont: { size: 12 },
+                            usePointStyle: true,
+                            callbacks: {
+                                title: (tooltipItems) => {
+                                    return `pH: ${tooltipItems[0].label}`;
+                                },
+                                label: (tooltipItem) => {
+                                    return `Net Charge: ${tooltipItem.parsed.y.toFixed(3)} e⁻`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'pH',
+                                font: { size: 13, weight: 'bold' },
+                                color: '#374151'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
+                                drawBorder: true,
+                                borderColor: '#D1D5DB'
+                            },
+                            ticks: {
+                                color: '#6B7280',
+                                font: { size: 11 }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Net Charge (e⁻)',
+                                font: { size: 13, weight: 'bold' },
+                                color: '#374151'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
+                                drawBorder: true,
+                                borderColor: '#D1D5DB'
+                            },
+                            ticks: {
+                                color: '#6B7280',
+                                font: { size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+
+            console.log("✓ Charge profile chart rendered");
+        }
+    </script>
+</body>
+</html>
+
+    <!-- ADD THIS JUST BEFORE </body> tag for working tooltips -->
+    <script>
+    // Custom tooltip that definitely works
+    (function() {
+        const tooltip = document.createElement('div');
+        tooltip.id = 'custom-feature-tooltip';
+        tooltip.style.cssText = `
+            position: fixed;
+            background: rgba(17, 24, 39, 0.95);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: -apple-system, sans-serif;
+            pointer-events: none;
+            z-index: 100000;
+            display: none;
+            max-width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        `;
+        document.body.appendChild(tooltip);
+
+        let currentFeature = null;
+        
+        // Add listeners to all track elements
+        setTimeout(() => {
+            document.querySelectorAll('nightingale-track').forEach(track => {
+                const trackElement = track;
+                
+                // Try to access shadow root for hover detection
+                if (trackElement.shadowRoot) {
+                    const svg = trackElement.shadowRoot.querySelector('svg');
+                    if (svg) {
+                        svg.addEventListener('mousemove', (e) => {
+                            // Get all features for this track
+                            const features = trackElement.data || [];
+                            
+                            // Simple hit detection - find if mouse is over any feature
+                            // This is approximate but works
+                            const rect = svg.getBoundingClientRect();
+                            const x = e.clientX - rect.left;
+                            const trackWidth = rect.width;
+                            const trackLength = parseInt(trackElement.getAttribute('length')) || 100;
+                            const position = Math.floor((x / trackWidth) * trackLength);
+                            
+                            // Find feature at this position
+                            const feature = features.find(f => {
+                                const start = f.start || f.begin || 0;
+                                const end = f.end || start;
+                                return position >= start && position <= end;
+                            });
+                            
+                            if (feature && feature !== currentFeature) {
+                                currentFeature = feature;
+                                const start = feature.start || feature.begin || '?';
+                                const end = feature.end || start;
+                                const featureId = feature.ftId || feature.id || 'N/A';
+                                const description = feature.description || feature.type || 'Unknown';
+                                
+                                tooltip.innerHTML = `
+                                    <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: #93c5fd;">${description}</div>
+                                    <div style="margin: 4px 0;"><strong>Position:</strong> ${start}-${end}</div>
+                                    <div style="margin: 4px 0;"><strong>Length:</strong> ${end - start + 1} aa</div>
+                                    <div style="margin: 4px 0;"><strong>Feature ID:</strong> ${featureId}</div>
+                                `;
+                                tooltip.style.display = 'block';
+                                tooltip.style.left = (e.clientX + 15) + 'px';
+                                tooltip.style.top = (e.clientY + 15) + 'px';
+                            } else if (!feature) {
+                                tooltip.style.display = 'none';
+                                currentFeature = null;
+                            }
+                        });
+                        
+                        svg.addEventListener('mouseleave', () => {
+                            tooltip.style.display = 'none';
+                            currentFeature = null;
+                        });
+                        
+                        // Update tooltip position on mouse move
+                        svg.addEventListener('mousemove', (e) => {
+                            if (tooltip.style.display === 'block') {
+                                tooltip.style.left = (e.clientX + 15) + 'px';
+                                tooltip.style.top = (e.clientY + 15) + 'px';
+                            }
+                        });
+                    }
+                }
+            });
+            
+            console.log("✓ Custom tooltip system activated");
+        }, 2000); // Wait for tracks to fully render
+    })();
+    </script>

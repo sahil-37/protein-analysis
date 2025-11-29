@@ -25,7 +25,7 @@ class ProteinDatabase:
         self.connection.row_factory = sqlite3.Row
 
         # Read and execute schema
-        schema_file = Path(__file__).parent / "database_schema.sql"
+        schema_file = Path(__file__).parent.parent.parent / "data" / "database_schema.sql"
         if schema_file.exists():
             with open(schema_file, "r") as f:
                 schema = f.read()

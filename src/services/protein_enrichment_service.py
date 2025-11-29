@@ -32,8 +32,7 @@ import requests
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from Bio.SeqUtils import molecular_weight
 
-from uniprot_client import UniProtClient
-from data_processor import UniProtDataProcessor
+from src.api_client import APIClient
 
 
 # ============================================================================
@@ -516,7 +515,7 @@ class ProteinEnrichmentService:
 
     def __init__(self):
         """Initialize the service"""
-        self.uniprot_client = UniProtClient()
+        self.api_client = APIClient()
 
     def _extract_or_predict_signal_peptide(self, sequence: str, features: List[Dict]) -> SignalPeptidePrediction:
         """
@@ -724,29 +723,53 @@ class ProteinEnrichmentService:
 
         # Step 1: Fetch from UniProt
         print("  → Fetching from UniProt...")
-        protein_json = self.uniprot_client.fetch_protein(accession_id)
+        protein_json = self.api_client.fetch_uniprot_entry(accession_id)
         if not protein_json:
             raise ValueError(f"Failed to fetch {accession_id}")
 
-        processor = UniProtDataProcessor(protein_json)
-        protein_data = processor.get_main_protein_data()
-
-        # Extract basic info
-        sequence = protein_data.get('sequence', '').upper()
+        sequence = self.api_client.fetch_protein_sequence(accession_id)
         if not sequence:
             raise ValueError(f"No sequence for {accession_id}")
 
+        # Extract basic info from UniProt JSON
+        organism_name = 'Unknown'
+        organism_taxon_id = None
+        gene_name = None
+
+        # Extract organism info
+        if 'organism' in protein_json:
+            organism_name = protein_json['organism'].get('scientificName', 'Unknown')
+            if 'taxonId' in protein_json['organism']:
+                organism_taxon_id = int(protein_json['organism']['taxonId'])
+
+        # Extract gene name
+        if 'genes' in protein_json and len(protein_json['genes']) > 0:
+            gene_obj = protein_json['genes'][0]
+            if 'geneName' in gene_obj:
+                gene_name = gene_obj['geneName'].get('value')
+
+        # Extract entry type (reviewed status)
+        entry_type = protein_json.get('entryType', '')
+        reviewed = 'reviewed' in entry_type.lower()
+
+        # Extract protein name
+        protein_name = 'Unknown'
+        if 'proteinDescription' in protein_json:
+            prot_desc = protein_json['proteinDescription']
+            if 'recommendedName' in prot_desc:
+                protein_name = prot_desc['recommendedName'].get('fullName', {}).get('value', 'Unknown')
+
         general = GeneralInfo(
-            protein_name=protein_data.get('protein_recommended_name', 'Unknown'),
-            gene_name=protein_data.get('gene_name'),
-            organism=protein_data.get('organism_scientific_name', 'Unknown'),
-            organism_taxon_id=protein_data.get('organism_taxon_id'),
+            protein_name=protein_name,
+            gene_name=gene_name,
+            organism=organism_name,
+            organism_taxon_id=organism_taxon_id,
             uniprot_id=accession_id,
-            entry_type=protein_data.get('entry_type', ''),
+            entry_type=entry_type,
             sequence_length=len(sequence),
-            reviewed='reviewed' in protein_data.get('entry_type', '').lower(),
-            created_date=protein_data.get('created_date'),
-            updated_date=protein_data.get('updated_date'),
+            reviewed=reviewed,
+            created_date=protein_json.get('uniProtkbId', {}).get('value') if isinstance(protein_json.get('uniProtkbId'), dict) else None,
+            updated_date=None,
         )
 
         sequence_data = SequenceData(
