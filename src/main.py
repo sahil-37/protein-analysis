@@ -105,6 +105,7 @@ class ProteinReportGenerator:
         protein_name = self._extract_protein_name(protein_data['entry']) if protein_data['entry'] else "Unknown"
         gene_name = self._extract_gene_name(protein_data['entry']) if protein_data['entry'] else "N/A"
         organism = self._extract_organism(protein_data['entry']) if protein_data['entry'] else "Unknown"
+        subcellular_location = self._extract_subcellular_location(protein_data['entry']) if protein_data['entry'] else "Unknown"
 
         charge_profile_dict = json.loads(charge_profile_json)
 
@@ -115,6 +116,7 @@ class ProteinReportGenerator:
             'protein_name': protein_name,
             'gene_name': gene_name,
             'organism': organism,
+            'subcellular_location': subcellular_location,
             'sequence': sequence,
             'sequence_length': len(sequence),
             **properties,
@@ -240,6 +242,26 @@ class ProteinReportGenerator:
         except:
             return 'Unknown'
 
+    def _extract_subcellular_location(self, entry: Dict) -> str:
+        """Extract subcellular location from UniProt entry."""
+        try:
+            comments = entry.get('comments', [])
+            locations = []
+
+            for comment in comments:
+                if comment.get('commentType') == 'SUBCELLULAR LOCATION':
+                    # Extract location values
+                    subcell_locs = comment.get('subcellularLocations', [])
+                    for loc in subcell_locs:
+                        location_info = loc.get('location', {})
+                        location_value = location_info.get('value', '')
+                        if location_value:
+                            locations.append(location_value)
+
+            return '; '.join(locations) if locations else 'Unknown'
+        except:
+            return 'Unknown'
+
     def _enhance_features(self, features: list) -> list:
         """Add tooltips to features and normalize types for Nightingale viewer."""
         # Map UniProt feature types to standardized types for Nightingale viewer
@@ -292,6 +314,14 @@ class ProteinReportGenerator:
             'Neddylation': 'NEDDYL',
         }
 
+        # Define which types are PTM (to be combined), peptide, or disulfide
+        ptm_types = {
+            'MOD_RES', 'CARBOHYD', 'ACETYL', 'PHOSPHO', 'UBIQUIT', 'SUMO',
+            'NITRO', 'LIPID', 'CROSSLNK', 'HYDROXY', 'ADPRIB', 'FARNESL',
+            'PALMI', 'GPI', 'NEDDYL', 'INIT_MET'
+        }
+        peptide_types = {'PEPTIDE', 'SIGNAL', 'PROPEP'}
+
         enhanced = []
         for feature in features:
             # Handle both UniProt (location.start.value) and EBI (begin/end) formats
@@ -311,6 +341,16 @@ class ProteinReportGenerator:
             original_type = feature.get('type', 'Unknown')
             standardized_type = type_mapping.get(original_type, original_type)
 
+            # Assign category for proper grouping in viewer
+            if standardized_type in ptm_types:
+                category = 'PTM'
+            elif standardized_type in peptide_types:
+                category = 'PEPTIDE'
+            elif standardized_type == 'DISULFID':
+                category = 'DISULFID'
+            else:
+                category = 'STRUCTURE'
+
             tooltip = f"{feature.get('description', original_type)}\n"
             tooltip += f"Position: {start}-{end} aa\nSize: {size} aa"
 
@@ -319,6 +359,7 @@ class ProteinReportGenerator:
             feature_copy['end'] = end
             feature_copy['title'] = tooltip
             feature_copy['type'] = standardized_type  # Override with standardized type
+            feature_copy['category'] = category  # Add category for filtering
             enhanced.append(feature_copy)
 
         return enhanced
@@ -384,7 +425,7 @@ class ProteinReportGenerator:
         <table class="properties-table">
             <thead>
                 <tr>
-                    <th colspan="2">Biophysical Properties</th>
+                    <th colspan="2">Biophysical Properties & Localization</th>
                 </tr>
             </thead>
             <tbody>
@@ -394,6 +435,8 @@ class ProteinReportGenerator:
                 <tr><td>Aromaticity</td><td>{data.get('aromaticity', 0):.4f}%</td></tr>
                 <tr><td>Instability Index</td><td>{data.get('instability_index', 0):.2f}</td></tr>
                 <tr><td>Cysteine Count</td><td>{data.get('cysteine_count', 0)}</td></tr>
+                <tr><td colspan="2" style="padding-top: 12px; font-weight: 600; border-top: 2px solid #e5e7eb;">Subcellular Location</td></tr>
+                <tr><td colspan="2">{data.get('subcellular_location', 'Unknown')}</td></tr>
                 <tr><td colspan="2" style="padding-top: 12px; font-weight: 600; border-top: 2px solid #e5e7eb;">Secondary Structure (Predicted)</td></tr>
                 <tr><td>α-Helix</td><td>{data.get('helix_predicted', 0):.2f}%</td></tr>
                 <tr><td>β-Sheet</td><td>{data.get('sheet_predicted', 0):.2f}%</td></tr>
