@@ -55,7 +55,8 @@ class ProteinReportGenerator:
         # 2. Extract PTMs
         print(f"   🔧 Analyzing post-translational modifications...")
         ptm_summary = self._extract_ptm_summary(features) if features else {'total_ptms': 0, 'by_type': {}, 'positions': []}
-        print(f"   ✅ Found {ptm_summary['total_ptms']} PTM(s)")
+        if ptm_summary:
+            print(f"   ✅ Found {ptm_summary['total_ptms']} PTM(s)")
 
         # 3. Analyze biophysical properties
         print(f"   🧮 Calculating biophysical properties...")
@@ -85,6 +86,9 @@ class ProteinReportGenerator:
 
         charge_profile_dict = json.loads(charge_profile_json)
 
+        # Handle features list (from UniProt API)
+        features_list = features if isinstance(features, list) else (features.get('features', []) if features else [])
+
         database_data = {
             'protein_name': protein_name,
             'gene_name': gene_name,
@@ -93,7 +97,7 @@ class ProteinReportGenerator:
             'sequence_length': len(sequence),
             **properties,
             'pdb_id': pdb_id,
-            'features': self._enhance_features(features.get('features', []) if features else []),
+            'features': self._enhance_features(features_list),
             'ptm_summary': ptm_summary,
             'secondary_structure': {
                 'helix_predicted': properties['helix_predicted'],
@@ -129,7 +133,7 @@ class ProteinReportGenerator:
 
         return True
 
-    def _extract_ptm_summary(self, features: Dict) -> Dict[str, Any]:
+    def _extract_ptm_summary(self, features) -> Dict[str, Any]:
         """Extract PTM summary from features."""
         ptm_summary = {
             'total_ptms': 0,
@@ -137,10 +141,33 @@ class ProteinReportGenerator:
             'positions': []
         }
 
-        for feature in features.get('features', []):
-            if feature.get('category') == 'PTM':
-                position = feature.get('begin', 0)
-                feature_type = feature.get('type', 'Unknown')
+        # Handle features as a list (from UniProt API)
+        features_list = features if isinstance(features, list) else (features.get('features', []) if isinstance(features, dict) else [])
+
+        # PTM types to look for in UniProt feature types
+        ptm_types = {
+            'Modified residue', 'Lipidation', 'Glycosylation', 'Phosphorylation',
+            'N-linked glycosylation', 'O-linked glycosylation', 'Sulfation',
+            'Acetylation', 'Amidation', 'GPI-anchor', 'Ubiquitination',
+            'Sumoylation', 'Nitrosylation', 'S-nitrosylation', 'Neddylation',
+            'Disulfide bond', 'Proteolytic cleavage', 'Signal peptide',
+            'Propeptide', 'Transit peptide'
+        }
+
+        for feature in features_list:
+            feature_type = feature.get('type', 'Unknown')
+
+            # Check if this is a PTM feature (either by EBI category or UniProt type)
+            is_ptm = (feature.get('category') == 'PTM' or feature_type in ptm_types)
+
+            if is_ptm:
+                # Get position - handle both UniProt (location.start.value) and EBI (begin) formats
+                location = feature.get('location', {})
+                if isinstance(location, dict) and 'start' in location:
+                    position = location['start'].get('value', 0)
+                else:
+                    position = feature.get('begin', 0)
+
                 description = feature.get('description', feature_type)
 
                 ptm_summary['total_ptms'] += 1
@@ -194,8 +221,17 @@ class ProteinReportGenerator:
         """Add tooltips to features."""
         enhanced = []
         for feature in features:
-            start = int(feature.get('begin') or feature.get('start', 0))
-            end = int(feature.get('end') or start)
+            # Handle both UniProt (location.start.value) and EBI (begin/end) formats
+            location = feature.get('location', {})
+            if isinstance(location, dict) and 'start' in location:
+                # UniProt format
+                start = int(location['start'].get('value', 0))
+                end = int(location.get('end', {}).get('value', start))
+            else:
+                # EBI format
+                start = int(feature.get('begin') or feature.get('start', 0))
+                end = int(feature.get('end') or start)
+
             size = end - start + 1
 
             tooltip = f"{feature.get('description', feature.get('type'))}\n"
