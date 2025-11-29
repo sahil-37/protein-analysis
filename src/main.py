@@ -240,7 +240,36 @@ class ProteinReportGenerator:
             return 'Unknown'
 
     def _enhance_features(self, features: list) -> list:
-        """Add tooltips to features."""
+        """Add tooltips to features and normalize types for Nightingale viewer."""
+        # Map UniProt feature types to standardized types for Nightingale viewer
+        type_mapping = {
+            'Chain': 'CHAIN',
+            'Domain': 'DOMAIN',
+            'Region': 'REGION',
+            'Site': 'SITE',
+            'Binding site': 'BINDING',
+            'Disulfide bond': 'DISULFID',
+            'Beta strand': 'STRAND',
+            'Helix': 'HELIX',
+            'Turn': 'TURN',
+            'Modified residue': 'MOD_RES',
+            'Glycosylation': 'CARBOHYD',
+            'Initiator methionine': 'INIT_MET',
+            'Natural variant': 'VAR_SEQ',
+            'Peptide': 'PEPTIDE',
+            'Sequence conflict': 'CONFLICT',
+            'Mutagenesis': 'MUTAGEN',
+            'Calcium binding': 'CA_BIND',
+            'DNA binding': 'DNA_BIND',
+            'Lipidation': 'LIPID',
+            'Metal binding': 'METAL',
+            'Zinc finger': 'ZN_FING',
+            'Disulfide bond (establishment)': 'DISULFID',
+            'Signal peptide': 'SIGNAL',
+            'Propeptide': 'PROPEP',
+            'Transmembrane': 'TRANSMEM',
+        }
+
         enhanced = []
         for feature in features:
             # Handle both UniProt (location.start.value) and EBI (begin/end) formats
@@ -256,13 +285,18 @@ class ProteinReportGenerator:
 
             size = end - start + 1
 
-            tooltip = f"{feature.get('description', feature.get('type'))}\n"
+            # Normalize the feature type for the Nightingale viewer
+            original_type = feature.get('type', 'Unknown')
+            standardized_type = type_mapping.get(original_type, original_type)
+
+            tooltip = f"{feature.get('description', original_type)}\n"
             tooltip += f"Position: {start}-{end} aa\nSize: {size} aa"
 
             feature_copy = feature.copy()
             feature_copy['start'] = start
             feature_copy['end'] = end
             feature_copy['title'] = tooltip
+            feature_copy['type'] = standardized_type  # Override with standardized type
             enhanced.append(feature_copy)
 
         return enhanced
