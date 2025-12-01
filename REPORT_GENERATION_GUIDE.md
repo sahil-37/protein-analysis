@@ -444,6 +444,30 @@ if results['failed']:
 
 ### Database Integration
 
+All data generated in reports is automatically stored in an SQLite database (`protein_reports.db`). This enables:
+- Persistent storage of protein analyses
+- Quick retrieval without re-fetching data
+- Cross-protein querying and analysis
+- Data synchronization between reports and database
+
+**Database Schema:**
+- **proteins**: Core metadata (name, gene, organism, subcellular location, sequence, biophysical properties, extinction coefficients, PDB ID)
+- **secondary_structure**: Predicted and experimental secondary structure percentages
+- **charge_profile**: pH-dependent charge values
+- **ptm_summary**: Post-translational modification counts
+- **ptm_details**: Individual PTM positions and types
+- **protein_features**: All extracted features (domains, regions, sites, variants, etc.)
+- **protein_comments**: Functional annotations, disease info, tissue specificity
+- **protein_keywords**: UniProt keywords
+- **protein_go_terms**: Gene Ontology annotations
+- Plus 8 additional metadata tables for comprehensive data storage
+
+**Data Synchronization:**
+Every data point displayed in the HTML report is backed by the database. This ensures:
+- Consistency between reports and stored data
+- No data loss or duplication
+- 40+ synchronized data points including biophysical properties, secondary structure, PTM data, and protein features
+
 ```python
 from src.main import ProteinReportGenerator
 from src.data_manager import DataManager
@@ -461,16 +485,36 @@ dm = DataManager()
 conn = sqlite3.connect('protein_reports.db')
 cursor = conn.cursor()
 
-# Get all stored proteins
+# Get all stored proteins with biophysical properties
 cursor.execute("""
-    SELECT accession_id, protein_name, molecular_weight, isoelectric_point
+    SELECT accession_id, protein_name, organism, subcellular_location,
+           molecular_weight, isoelectric_point, gravy_score
     FROM proteins
 """)
 
 for row in cursor.fetchall():
-    acc_id, name, mw, pi = row
+    acc_id, name, organism, location, mw, pi, gravy = row
     print(f"{acc_id}: {name}")
-    print(f"  MW: {mw/1000:.1f} kDa, pI: {pi:.2f}")
+    print(f"  Organism: {organism}")
+    print(f"  Location: {location}")
+    print(f"  MW: {mw/1000:.1f} kDa, pI: {pi:.2f}, GRAVY: {gravy:.4f}")
+
+# Query secondary structure for all proteins
+cursor.execute("""
+    SELECT p.accession_id, p.protein_name,
+           ss.helix_predicted, ss.sheet_predicted, ss.turn_predicted,
+           ss.helix_experimental, ss.sheet_experimental, ss.turn_experimental
+    FROM proteins p
+    JOIN secondary_structure ss ON p.protein_id = ss.protein_id
+""")
+
+print("\nSecondary Structure (Predicted vs Experimental):")
+for row in cursor.fetchall():
+    acc_id, name, h_pred, s_pred, t_pred, h_exp, s_exp, t_exp = row
+    print(f"{acc_id} ({name}):")
+    print(f"  Theoretical: Helix={h_pred:.1f}%, Sheet={s_pred:.1f}%, Turn={t_pred:.1f}%")
+    if h_exp or s_exp or t_exp:
+        print(f"  Experimental: Helix={h_exp:.1f}%, Sheet={s_exp:.1f}%, Turn={t_exp:.1f}%")
 
 conn.close()
 ```

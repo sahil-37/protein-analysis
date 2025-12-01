@@ -52,11 +52,11 @@ Choose your path based on what you need:
 
 ## ✨ Features
 
-✓ **UniProt Data Fetching** - Sequence, metadata, features, annotations
-✓ **Biophysical Analysis** - MW, pI, GRAVY, instability index, secondary structure
-✓ **PTM Analysis** - Post-translational modifications with visualization
-✓ **Database Storage** - SQLite with 18 normalized tables
-✓ **Interactive Reports** - Professional HTML with Nightingale viewer
+✓ **UniProt Data Fetching** - Sequence, metadata, features, annotations, subcellular location
+✓ **Biophysical Analysis** - MW, pI, GRAVY, instability index, extinction coefficients, secondary structure (theoretical & experimental)
+✓ **PTM Analysis** - Post-translational modifications with interactive visualization
+✓ **Database Storage** - SQLite with 18 normalized tables, fully synchronized with reports
+✓ **Interactive Reports** - Professional HTML with Nightingale sequence viewer
 ✓ **Batch Processing** - Generate multiple reports at once
 ✓ **CLI & Python API** - Use from command line or import as library
 

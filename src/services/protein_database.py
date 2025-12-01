@@ -60,16 +60,17 @@ class ProteinDatabase:
             # Insert or update main protein record
             cursor.execute("""
                 INSERT OR REPLACE INTO proteins (
-                    accession_id, protein_name, gene_name, organism, sequence,
+                    accession_id, protein_name, gene_name, organism, subcellular_location, sequence,
                     sequence_length, molecular_weight, isoelectric_point,
                     gravy_score, aromaticity, instability_index, cysteine_count,
                     extinction_coeff_reduced, extinction_coeff_oxidized, pdb_id, has_structure
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 accession_id,
                 protein_data.get('protein_name'),
                 protein_data.get('gene_name'),
                 protein_data.get('organism'),
+                protein_data.get('subcellular_location'),
                 protein_data.get('sequence', ''),
                 protein_data.get('sequence_length', 0),
                 protein_data.get('molecular_weight'),

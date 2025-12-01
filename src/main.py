@@ -64,11 +64,15 @@ class ProteinReportGenerator:
         raw_properties = analyzer.get_all_properties()
 
         # Transform property keys to match template expectations
+        # Note: ProtParam from BioPython provides helix, sheet, turn percentages
+        # Coil is not explicitly calculated, so we don't include it
         helix = raw_properties['helix_predicted']
         turn = raw_properties['turn_predicted']
         sheet = raw_properties['sheet_predicted']
-        # Calculate coil to ensure sum is 100 (handle floating point rounding)
-        coil = max(0, 100 - (helix + turn + sheet))
+
+        # Calculate experimental secondary structure from UniProt annotations
+        features_list = features if isinstance(features, list) else (features.get('features', []) if features else [])
+        experimental_ss = self._calculate_experimental_secondary_structure(features_list, len(sequence))
 
         properties = {
             'molecular_weight': raw_properties['molecular_weight_kda'],
@@ -82,9 +86,13 @@ class ProteinReportGenerator:
             'helix_predicted': helix,
             'turn_predicted': turn,
             'sheet_predicted': sheet,
-            'coil_predicted': coil,
+            'helix_experimental': experimental_ss['helix_experimental'],
+            'turn_experimental': experimental_ss['turn_experimental'],
+            'sheet_experimental': experimental_ss['sheet_experimental'],
         }
         print(f"   ✅ Calculated properties")
+        if experimental_ss['helix_experimental'] > 0 or experimental_ss['sheet_experimental'] > 0:
+            print(f"   ✅ Found experimental secondary structure annotations")
 
         # 4. Generate charge profile
         print(f"   🔋 Generating charge profile...")
@@ -127,9 +135,9 @@ class ProteinReportGenerator:
                 'helix_predicted': properties['helix_predicted'],
                 'turn_predicted': properties['turn_predicted'],
                 'sheet_predicted': properties['sheet_predicted'],
-                'helix_experimental': 0,
-                'turn_experimental': 0,
-                'sheet_experimental': 0,
+                'helix_experimental': properties['helix_experimental'],
+                'turn_experimental': properties['turn_experimental'],
+                'sheet_experimental': properties['sheet_experimental'],
             },
             'charge_profile': charge_profile_dict,
             'disulfide_bonds': [],
@@ -162,43 +170,71 @@ class ProteinReportGenerator:
         ptm_summary = {
             'total_ptms': 0,
             'by_type': {},
-            'positions': []
+            'details': [],
+            'peptides': []
         }
 
         # Handle features as a list (from UniProt API)
         features_list = features if isinstance(features, list) else (features.get('features', []) if isinstance(features, dict) else [])
 
-        # PTM types to look for in UniProt feature types
+        # PTM types to look for in UniProt
         ptm_types = {
             'Modified residue', 'Lipidation', 'Glycosylation', 'Phosphorylation',
             'N-linked glycosylation', 'O-linked glycosylation', 'Sulfation',
             'Acetylation', 'Amidation', 'GPI-anchor', 'Ubiquitination',
             'Sumoylation', 'Nitrosylation', 'S-nitrosylation', 'Neddylation',
-            'Disulfide bond', 'Proteolytic cleavage', 'Signal peptide',
-            'Propeptide', 'Transit peptide', 'Cross-link', 'Hydroxylation',
-            'ADP-ribosylation', 'Farnesylation', 'Palmitoylation'
+            'Disulfide bond', 'Proteolytic cleavage', 'Cross-link', 'Hydroxylation',
+            'ADP-ribosylation', 'Farnesylation', 'Palmitoylation', 'Methylation'
+        }
+
+        # Peptide types
+        peptide_types = {
+            'Signal peptide', 'Propeptide', 'Transit peptide', 'Peptide'
         }
 
         for feature in features_list:
             feature_type = feature.get('type', 'Unknown')
 
-            # Check if this is a PTM feature (either by EBI category or UniProt type)
-            is_ptm = (feature.get('category') == 'PTM' or feature_type in ptm_types)
-
-            if is_ptm:
-                # Get position - handle both UniProt (location.start.value) and EBI (begin) formats
+            # Check if this is a PTM feature
+            if feature_type in ptm_types:
                 location = feature.get('location', {})
-                if isinstance(location, dict) and 'start' in location:
-                    position = location['start'].get('value', 0)
-                else:
-                    position = feature.get('begin', 0)
+                start_pos = 0
+                end_pos = 0
+
+                if isinstance(location, dict):
+                    if 'start' in location:
+                        start_pos = location['start'].get('value', 0)
+                    if 'end' in location:
+                        end_pos = location['end'].get('value', 0)
 
                 description = feature.get('description', feature_type)
 
                 ptm_summary['total_ptms'] += 1
                 ptm_summary['by_type'][feature_type] = ptm_summary['by_type'].get(feature_type, 0) + 1
-                ptm_summary['positions'].append({
-                    'position': position,
+                ptm_summary['details'].append({
+                    'position': start_pos,
+                    'end_position': end_pos,
+                    'type': feature_type,
+                    'description': description
+                })
+
+            # Check if this is a peptide feature
+            elif feature_type in peptide_types:
+                location = feature.get('location', {})
+                start_pos = 0
+                end_pos = 0
+
+                if isinstance(location, dict):
+                    if 'start' in location:
+                        start_pos = location['start'].get('value', 0)
+                    if 'end' in location:
+                        end_pos = location['end'].get('value', 0)
+
+                description = feature.get('description', feature_type)
+
+                ptm_summary['peptides'].append({
+                    'start_position': start_pos,
+                    'end_position': end_pos,
                     'type': feature_type,
                     'description': description
                 })
@@ -261,6 +297,64 @@ class ProteinReportGenerator:
             return '; '.join(locations) if locations else 'Unknown'
         except:
             return 'Unknown'
+
+    def _calculate_experimental_secondary_structure(self, features: list, sequence_length: int) -> Dict[str, float]:
+        """
+        Calculate experimental secondary structure percentages from UniProt annotations.
+
+        UniProt provides experimentally-determined or literature-based secondary structure
+        assignments using features like 'Helix', 'Beta strand', and 'Turn'.
+
+        Args:
+            features: List of features from UniProt
+            sequence_length: Length of protein sequence
+
+        Returns:
+            Dictionary with percentages for helix, sheet, turn, coil
+        """
+        # Track residues assigned to each structure type
+        helix_residues = set()
+        sheet_residues = set()
+        turn_residues = set()
+
+        for feature in features:
+            feature_type = feature.get('type', '')
+            location = feature.get('location', {})
+
+            if not isinstance(location, dict):
+                continue
+
+            start = location.get('start', {})
+            end = location.get('end', {})
+
+            if not isinstance(start, dict) or not isinstance(end, dict):
+                continue
+
+            start_pos = start.get('value', 0)
+            end_pos = end.get('value', 0)
+
+            if start_pos == 0 or end_pos == 0:
+                continue
+
+            # Map feature types to secondary structure
+            if feature_type == 'Helix':
+                helix_residues.update(range(start_pos, end_pos + 1))
+            elif feature_type == 'Beta strand':
+                sheet_residues.update(range(start_pos, end_pos + 1))
+            elif feature_type == 'Turn':
+                turn_residues.update(range(start_pos, end_pos + 1))
+
+        # Calculate percentages (only for explicitly annotated structures, not coil)
+        total = sequence_length
+        helix_pct = (len(helix_residues) / total * 100) if total > 0 else 0
+        sheet_pct = (len(sheet_residues) / total * 100) if total > 0 else 0
+        turn_pct = (len(turn_residues) / total * 100) if total > 0 else 0
+
+        return {
+            'helix_experimental': helix_pct,
+            'sheet_experimental': sheet_pct,
+            'turn_experimental': turn_pct,
+        }
 
     def _get_observed_secondary_structure(self, pdb_id: str) -> Dict[str, float]:
         """
@@ -327,13 +421,14 @@ class ProteinReportGenerator:
             'Palmitoylation': 'PALMI',
             'GPI-anchor': 'GPI',
             'Neddylation': 'NEDDYL',
+            'PROTEOMICS_PTM': 'PROTEOMICS_PTM',
         }
 
         # Define which types are PTM (to be combined), peptide, or disulfide
         ptm_types = {
             'MOD_RES', 'CARBOHYD', 'ACETYL', 'PHOSPHO', 'UBIQUIT', 'SUMO',
             'NITRO', 'LIPID', 'CROSSLNK', 'HYDROXY', 'ADPRIB', 'FARNESL',
-            'PALMI', 'GPI', 'NEDDYL', 'INIT_MET'
+            'PALMI', 'GPI', 'NEDDYL', 'INIT_MET', 'PROTEOMICS_PTM'
         }
         peptide_types = {'PEPTIDE', 'SIGNAL', 'PROPEP'}
 
@@ -366,6 +461,7 @@ class ProteinReportGenerator:
             else:
                 category = 'STRUCTURE'
 
+            # Build tooltip
             tooltip = f"{feature.get('description', original_type)}\n"
             tooltip += f"Position: {start}-{end} aa\nSize: {size} aa"
 
@@ -435,48 +531,149 @@ class ProteinReportGenerator:
             print(f"   ⚠️  Error generating report: {e}")
 
     def _generate_protparam_table(self, data: Dict[str, Any]) -> str:
-        """Generate ProtParam table HTML."""
+        """Generate ProtParam card-based layout HTML."""
         return f"""
-        <table class="properties-table">
-            <thead>
-                <tr>
-                    <th colspan="2">Biophysical Properties & Localization</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td>Molecular Weight</td><td>{data.get('molecular_weight', 0):.2f} kDa</td></tr>
-                <tr><td>Isoelectric Point (pI)</td><td>{data.get('isoelectric_point', 0):.2f}</td></tr>
-                <tr><td>GRAVY Score</td><td>{data.get('gravy_score', 0):.4f}</td></tr>
-                <tr><td>Aromaticity</td><td>{data.get('aromaticity', 0):.4f}%</td></tr>
-                <tr><td>Instability Index</td><td>{data.get('instability_index', 0):.2f}</td></tr>
-                <tr><td>Cysteine Count</td><td>{data.get('cysteine_count', 0)}</td></tr>
-                <tr><td colspan="2" style="padding-top: 12px; font-weight: 600; border-top: 2px solid #e5e7eb;">Subcellular Location</td></tr>
-                <tr><td colspan="2">{data.get('subcellular_location', 'Unknown')}</td></tr>
-                <tr><td colspan="2" style="padding-top: 12px; font-weight: 600; border-top: 2px solid #e5e7eb;">Secondary Structure</td></tr>
-                <tr style="font-style: italic; color: #666;">
-                    <td colspan="2">Predicted using DSSP/STRIDE algorithm based on amino acid sequence</td>
-                </tr>
-                <tr><td>α-Helix (Predicted)</td><td>{data.get('helix_predicted', 0):.2f}%</td></tr>
-                <tr><td>β-Sheet (Predicted)</td><td>{data.get('sheet_predicted', 0):.2f}%</td></tr>
-                <tr><td>β-Turn (Predicted)</td><td>{data.get('turn_predicted', 0):.2f}%</td></tr>
-                <tr><td>Coil (Predicted)</td><td>{data.get('coil_predicted', 0):.2f}%</td></tr>
-            </tbody>
-        </table>
+        <div class="biophysical-container">
+            <!-- Biophysical Properties Card -->
+            <div class="property-card full-width">
+                <div class="card-title">Biophysical Properties</div>
+                <div class="property-grid-large">
+                    <div class="property-item">
+                        <div class="property-label">Molecular Weight</div>
+                        <div class="property-value">{data.get('molecular_weight', 0):.2f} <span class="unit">kDa</span></div>
+                    </div>
+                    <div class="property-item">
+                        <div class="property-label">Isoelectric Point</div>
+                        <div class="property-value">{data.get('isoelectric_point', 0):.2f} <span class="unit">pI</span></div>
+                    </div>
+                    <div class="property-item">
+                        <div class="property-label">GRAVY Score</div>
+                        <div class="property-value">{data.get('gravy_score', 0):.4f}</div>
+                        <div class="property-note">Hydropathy index</div>
+                    </div>
+                    <div class="property-item">
+                        <div class="property-label">Instability Index</div>
+                        <div class="property-value">{data.get('instability_index', 0):.2f}</div>
+                        <div class="property-note">Stability prediction</div>
+                    </div>
+                    <div class="property-item">
+                        <div class="property-label">Extinction Coeff. (Reduced)</div>
+                        <div class="property-value">{data.get('extinction_coeff_reduced', 0):.0f} <span class="unit">M⁻¹cm⁻¹</span></div>
+                    </div>
+                    <div class="property-item">
+                        <div class="property-label">Extinction Coeff. (Oxidized)</div>
+                        <div class="property-value">{data.get('extinction_coeff_oxidized', 0):.0f} <span class="unit">M⁻¹cm⁻¹</span></div>
+                    </div>
+                    <div class="property-item">
+                        <div class="property-label">Cysteine Count</div>
+                        <div class="property-value">{data.get('cysteine_count', 0)}</div>
+                    </div>
+                    <div class="property-item">
+                        <div class="property-label">Aromaticity</div>
+                        <div class="property-value">{data.get('aromaticity', 0):.2f}%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subcellular Location Card -->
+            <div class="property-card full-width">
+                <div class="card-title">Subcellular Location</div>
+                <div class="location-text">{data.get('subcellular_location', 'Unknown')}</div>
+            </div>
+
+            <!-- Secondary Structure Card -->
+            <div class="property-card full-width">
+                <div class="card-title">Secondary Structure</div>
+                <div class="structure-percentages">
+                    <div class="structure-row">
+                        <div class="structure-row-label">Theoretical</div>
+                        <div class="structure-values">
+                            <div class="structure-value-item">
+                                <span class="structure-label">α-Helix</span>
+                                <span class="structure-percent">{data.get('helix_predicted', 0):.1f}%</span>
+                            </div>
+                            <div class="structure-value-item">
+                                <span class="structure-label">β-Sheet</span>
+                                <span class="structure-percent">{data.get('sheet_predicted', 0):.1f}%</span>
+                            </div>
+                            <div class="structure-value-item">
+                                <span class="structure-label">β-Turn</span>
+                                <span class="structure-percent">{data.get('turn_predicted', 0):.1f}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="structure-row">
+                        <div class="structure-row-label">Experimental</div>
+                        <div class="structure-values">
+                            <div class="structure-value-item">
+                                <span class="structure-label">α-Helix</span>
+                                <span class="structure-percent">{data.get('helix_experimental', 0):.1f}%</span>
+                            </div>
+                            <div class="structure-value-item">
+                                <span class="structure-label">β-Sheet</span>
+                                <span class="structure-percent">{data.get('sheet_experimental', 0):.1f}%</span>
+                            </div>
+                            <div class="structure-value-item">
+                                <span class="structure-label">β-Turn</span>
+                                <span class="structure-percent">{data.get('turn_experimental', 0):.1f}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="structure-note-text">Theoretical: DSSP/STRIDE algorithm | Experimental: UniProt annotations</div>
+            </div>
+        </div>
         """
 
     def _generate_ptm_section(self, data: Dict[str, Any]) -> str:
-        """Generate PTM section HTML."""
+        """Generate detailed PTM section HTML."""
         ptm_summary = data.get('ptm_summary', {})
+        ptm_details = ptm_summary.get('details', [])
+        peptides = ptm_summary.get('peptides', [])
         ptm_by_type = ptm_summary.get('by_type', {})
 
-        if not ptm_by_type:
-            return '<p>No PTMs found</p>'
+        if not ptm_by_type and not peptides:
+            return '<p>No PTMs or peptides found</p>'
 
-        ptm_html = '<div class="ptm-types">'
-        for ptm_type, count in ptm_by_type.items():
-            ptm_html += f'<div class="ptm-type-item">{ptm_type}: {count}</div>'
+        ptm_html = '<div class="ptm-container">'
+
+        # PTM Overview
+        if ptm_by_type:
+            ptm_html += '<div class="ptm-overview">'
+            ptm_html += '<h4 class="ptm-subtitle">Modified Residues</h4>'
+            ptm_html += '<div class="ptm-type-grid">'
+            for ptm_type, count in sorted(ptm_by_type.items()):
+                ptm_html += f'<div class="ptm-type-badge"><span class="ptm-type-name">{ptm_type}</span><span class="ptm-count-badge">{count}</span></div>'
+            ptm_html += '</div></div>'
+
+        # PTM Details
+        if ptm_details:
+            ptm_html += '<div class="ptm-details-section">'
+            ptm_html += '<h4 class="ptm-subtitle">Modification Sites</h4>'
+            ptm_html += '<div class="ptm-list">'
+
+            # Sort by position
+            sorted_ptms = sorted(ptm_details, key=lambda x: x.get('position', 0))
+            for ptm in sorted_ptms:
+                position = ptm.get('position', 0)
+                end_position = ptm.get('end_position', 0)
+                ptm_type = ptm.get('type', 'Unknown')
+                description = ptm.get('description', '')
+
+                pos_text = f"{position}" if position == end_position else f"{position}-{end_position}"
+
+                ptm_html += f'<div class="ptm-item">'
+                ptm_html += f'  <div class="ptm-position">Pos {pos_text}</div>'
+                ptm_html += f'  <div class="ptm-info">'
+                ptm_html += f'    <div class="ptm-type">{ptm_type}</div>'
+                if description:
+                    ptm_html += f'    <div class="ptm-description">{description}</div>'
+                ptm_html += f'  </div>'
+                ptm_html += f'</div>'
+
+            ptm_html += '</div></div>'
+
         ptm_html += '</div>'
-
         return ptm_html
 
     def close(self):

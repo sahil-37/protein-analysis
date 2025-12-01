@@ -58,6 +58,7 @@ That's it! The protein analysis report has been generated and data stored in the
 ✓ **UniProt Data Fetching**
 - Fetch complete protein information from UniProt REST API
 - Extract sequence, metadata, features, and annotations
+- Extract subcellular location information
 - Support for batch processing multiple proteins
 
 ✓ **Biophysical Property Calculations**
@@ -66,8 +67,8 @@ That's it! The protein analysis report has been generated and data stored in the
 - GRAVY score (hydropathy)
 - Aromaticity
 - Instability index
-- Secondary structure fractionation (helix/sheet/coil)
-- Extinction coefficients (reduced & oxidized)
+- Secondary structure (theoretical from DSSP/STRIDE, experimental from UniProt)
+- Extinction coefficients (reduced & oxidized forms)
 - pH-dependent charge profile (pH 2-12)
 
 ✓ **Post-Translational Modification (PTM) Analysis**
@@ -89,10 +90,11 @@ That's it! The protein analysis report has been generated and data stored in the
 
 ✓ **Database Storage**
 - SQLite database with 18 normalized tables
-- Store calculated biophysical properties
-- Store extracted UniProt metadata
+- Store all calculated biophysical properties
+- Store extracted UniProt metadata (location, comments, GO terms, references, etc.)
+- Full synchronization: all report data is backed by database
 - Indexed for fast queries
-- Support for batch storage
+- Support for batch storage and retrieval
 
 ✓ **Interactive Report Generation**
 - Professional HTML reports with Nightingale viewer
@@ -506,44 +508,88 @@ metadata = extractor.extract_metadata('P69905')
 
 ### Schema Overview
 
-The SQLite database contains **18 tables** organized into two groups:
+The SQLite database contains **18 tables** organized into two groups. **All data displayed in reports is synchronized with the database**, ensuring consistency and enabling persistent storage and querying.
 
 #### Calculated Data Tables (9)
 1. **proteins** - Main protein information with calculated properties
-2. **secondary_structure** - Predicted helix/sheet/coil fractions
-3. **charge_profile** - pH-dependent charge values
+   - Accession ID, protein name, gene name, organism
+   - **Subcellular location** (extracted from UniProt)
+   - Sequence and sequence length
+   - Biophysical properties: molecular weight, isoelectric point, GRAVY score, aromaticity, instability index, cysteine count
+   - Extinction coefficients (reduced and oxidized forms)
+   - PDB ID and structure availability flag
+   - Created/updated timestamps
+2. **secondary_structure** - Predicted and experimental secondary structure percentages
+   - Helix, sheet, and turn percentages (theoretical from DSSP/STRIDE)
+   - Helix, sheet, and turn percentages (experimental from UniProt annotations)
+3. **charge_profile** - pH-dependent charge values (pH 2.0 to 12.0)
 4. **ptm_summary** - Total PTM count per protein
-5. **ptm_details** - Individual PTM site information
+5. **ptm_details** - Individual PTM site information (position, type, description)
 6. **ptm_type_counts** - Count of each PTM type
-7. **disulfide_bonds** - Disulfide bond information
-8. **protein_features** - General sequence features
+7. **disulfide_bonds** - Disulfide bond information (if present)
+8. **protein_features** - General sequence features (domains, regions, sites, variants, peptides, etc.)
 9. **generated_reports** - Report metadata and file paths
 
 #### UniProt Metadata Tables (9)
 10. **protein_secondary_accessions** - Alternative accession IDs
 11. **protein_genes** - Gene names and synonyms
 12. **protein_names** - Protein name variants
-13. **protein_comments** - Functional annotations
-14. **protein_cross_references** - References to external databases
+13. **protein_comments** - Functional annotations (FUNCTION, TISSUE SPECIFICITY, DISEASE, CAUTION, etc.)
+14. **protein_cross_references** - References to external databases (PDB, InterPro, SMART, etc.)
 15. **protein_keywords** - Keywords/topics
 16. **protein_go_terms** - Gene Ontology annotations
 17. **protein_interactions** - Protein-protein interactions
 18. **protein_references** - Publication information
 
+### Data Synchronization
+
+**Every data point displayed in the HTML report is backed by the database.** This includes:
+- **40+ synchronized data points** across all major sections
+- **Biophysical properties** (8 metrics)
+- **Secondary structure** (6 values: 3 theoretical + 3 experimental)
+- **Charge profile** (101+ pH-charge data points)
+- **PTM information** (counts and detailed positions)
+- **Protein features** (325+ entries including domains, sites, variants, peptides)
+- **Metadata** (name, organism, location, sequence)
+
 ### Example Queries
 
 ```sql
--- Get stored proteins
-SELECT accession_id, protein_name, molecular_weight FROM proteins;
+-- Get stored proteins with core properties
+SELECT accession_id, protein_name, organism, subcellular_location,
+       molecular_weight, isoelectric_point
+FROM proteins;
+
+-- Find proteins by subcellular location
+SELECT accession_id, protein_name
+FROM proteins
+WHERE subcellular_location LIKE '%Nucleus%';
 
 -- Find proteins by molecular weight
 SELECT * FROM proteins WHERE molecular_weight > 50000;
 
--- Get charge at specific pH
-SELECT * FROM charge_profile WHERE protein_id = 1 AND ph_value = 7.4;
+-- Get secondary structure for a protein (theoretical vs experimental)
+SELECT p.accession_id, p.protein_name,
+       ss.helix_predicted, ss.sheet_predicted, ss.turn_predicted,
+       ss.helix_experimental, ss.sheet_experimental, ss.turn_experimental
+FROM proteins p
+JOIN secondary_structure ss ON p.protein_id = ss.protein_id;
+
+-- Get charge at specific pH (physiological pH 7.4)
+SELECT p.accession_id, p.protein_name, cp.charge
+FROM proteins p
+JOIN charge_profile cp ON p.protein_id = cp.protein_id
+WHERE cp.ph_value = 7.4;
 
 -- List all PTMs for a protein
-SELECT position, ptm_type FROM ptm_details WHERE protein_id = 1;
+SELECT position, ptm_type, description FROM ptm_details WHERE ptm_id = 1;
+
+-- Count PTM types for all proteins
+SELECT p.accession_id, ptc.ptm_type, ptc.count
+FROM proteins p
+JOIN ptm_summary ps ON p.protein_id = ps.protein_id
+JOIN ptm_type_counts ptc ON ps.ptm_id = ptc.ptm_id
+ORDER BY p.accession_id, ptc.count DESC;
 
 -- Get proteins with specific GO terms
 SELECT DISTINCT p.accession_id, p.protein_name
@@ -556,6 +602,12 @@ SELECT p.accession_id, p.protein_name, COUNT(*) as disulfide_count
 FROM proteins p
 JOIN disulfide_bonds d ON p.protein_id = d.protein_id
 GROUP BY p.protein_id;
+
+-- Get all features for a protein
+SELECT feature_type, category, description, start_position, end_position
+FROM protein_features
+WHERE protein_id = 1
+ORDER BY start_position;
 ```
 
 ---
@@ -569,7 +621,9 @@ The generated HTML report contains:
 1. **Protein Information**
    - Accession ID, Name, Gene Name
    - Organism, Sequence Length
+   - **Subcellular Location** (extracted from UniProt)
    - PDB Structure ID (if available)
+   - Interactive amino acid sequence viewer
 
 2. **Biophysical Properties**
    - Molecular Weight (Da & kDa)
@@ -578,12 +632,17 @@ The generated HTML report contains:
    - Aromaticity
    - Instability Index
    - Cysteine Count
-   - Extinction Coefficients
+   - Extinction Coefficients (Reduced & Oxidized forms in M⁻¹cm⁻¹)
 
 3. **Secondary Structure**
-   - α-Helix percentage
-   - β-Sheet percentage
-   - Coil percentage
+   - Theoretical (DSSP/STRIDE):
+     - α-Helix percentage
+     - β-Sheet percentage
+     - Turn percentage
+   - Experimental (UniProt annotations):
+     - α-Helix percentage
+     - β-Sheet percentage
+     - Turn percentage
 
 4. **Charge Profile**
    - Interactive graph of charge vs pH

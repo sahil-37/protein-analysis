@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS proteins (
     protein_name TEXT,
     gene_name TEXT,
     organism TEXT,
+    subcellular_location TEXT,
     sequence TEXT NOT NULL,
     sequence_length INTEGER NOT NULL,
     molecular_weight REAL,

@@ -47,6 +47,19 @@
             --radius-md: 0.5rem;
             --radius-lg: 0.75rem;
             --radius-xl: 1rem;
+
+            /* Secondary Structure Colors - Same colors for both theoretical and experimental */
+            --helix-light: #3b82f6;
+            --helix-dark: #1d4ed8;
+
+            --sheet-light: #10b981;
+            --sheet-dark: #047857;
+
+            --turn-light: #f59e0b;
+            --turn-dark: #d97706;
+
+            --coil-light: #8b5cf6;
+            --coil-dark: #6d28d9;
         }
         
         * {
@@ -402,6 +415,114 @@
             margin-top: var(--space-3);
         }
 
+        /* Detailed PTM Container */
+        .ptm-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+
+        .ptm-subtitle {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-3);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .ptm-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-3);
+        }
+
+        .ptm-type-name {
+            font-weight: 500;
+        }
+
+        .ptm-details-section,
+        .peptides-section {
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            background: white;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .ptm-item,
+        .peptide-item {
+            display: flex;
+            gap: var(--space-4);
+            padding: var(--space-3);
+            background: var(--gray-50);
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--primary-600);
+        }
+
+        .peptide-item {
+            border-left-color: #8b5cf6;
+        }
+
+        .ptm-position,
+        .peptide-position {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--primary-600);
+            min-width: 70px;
+            white-space: nowrap;
+        }
+
+        .peptide-position {
+            color: #8b5cf6;
+        }
+
+        .ptm-info,
+        .peptide-info {
+            flex: 1;
+        }
+
+        .ptm-type,
+        .peptide-type {
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 0.9rem;
+            margin-bottom: var(--space-1);
+        }
+
+        .ptm-description,
+        .peptide-description {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            line-height: 1.5;
+            margin-top: var(--space-1);
+        }
+
+        /* Scrollbar styling for PTM/Peptide sections */
+        .ptm-details-section::-webkit-scrollbar,
+        .peptides-section::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .ptm-details-section::-webkit-scrollbar-track,
+        .peptides-section::-webkit-scrollbar-track {
+            background: var(--gray-100);
+            border-radius: var(--radius-md);
+        }
+
+        .ptm-details-section::-webkit-scrollbar-thumb,
+        .peptides-section::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: var(--radius-md);
+        }
+
+        .ptm-details-section::-webkit-scrollbar-thumb:hover,
+        .peptides-section::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-400);
+        }
+
         /* Secondary Structure Comparison Table */
         .sec-struct-table-wrapper {
             background: white;
@@ -552,7 +673,324 @@
             font-family: var(--font-mono);
             font-size: 0.9375rem;
         }
-        
+
+        /* Biophysical Properties Card Layout */
+        .biophysical-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-4);
+            margin-top: var(--space-3);
+        }
+
+        .property-card {
+            background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .property-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-color: var(--gray-300);
+        }
+
+        .property-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--space-3);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .structure-type {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            background: var(--gray-100);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--space-3);
+        }
+
+        .property-item {
+            padding: var(--space-2);
+            border-radius: var(--radius-md);
+            background: white;
+            border: 1px solid var(--gray-100);
+        }
+
+        .property-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .property-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            font-family: var(--font-mono);
+        }
+
+        .unit {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            margin-left: 2px;
+        }
+
+        .property-note {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        /* Larger property grid for full-width cards */
+        .property-grid-large {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .location-text {
+            background: white;
+            padding: var(--space-3);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--gray-100);
+            color: var(--gray-700);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .structure-note {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            margin-bottom: var(--space-3);
+            padding: var(--space-2) var(--space-3);
+            background: white;
+            border-left: 3px solid var(--gray-300);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .structure-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin-top: var(--space-3);
+        }
+
+        .structure-item {
+            background: white;
+            padding: var(--space-3);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--gray-100);
+        }
+
+        .structure-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: var(--space-2);
+        }
+
+        .structure-bar {
+            width: 100%;
+            height: 24px;
+            background: var(--gray-100);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: var(--space-2);
+            border: 1px solid var(--gray-200);
+        }
+
+        .structure-fill {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 4px;
+            transition: width 0.3s ease;
+            min-width: 0;
+        }
+
+        .structure-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            font-family: var(--font-mono);
+            text-align: right;
+        }
+
+        /* Secondary Structure Comparison */
+        .structure-comparison {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: var(--space-4);
+            align-items: start;
+        }
+
+        .structure-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .structure-type-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .structure-method {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            background: var(--gray-100);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .structure-divider {
+            width: 1px;
+            background: var(--gray-300);
+            margin: var(--space-3) 0;
+        }
+
+        /* Legend for secondary structure */
+        .structure-legend {
+            margin-bottom: var(--space-4);
+            padding: var(--space-3);
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: 0.9rem;
+            color: var(--gray-700);
+            font-weight: 500;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            flex-shrink: 0;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* Simple percentage display for secondary structure */
+        .structure-percentages {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-6);
+        }
+
+        .structure-row {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .structure-row-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .structure-values {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-3);
+        }
+
+        .structure-value-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-2) var(--space-3);
+            background: white;
+            border: 1px solid var(--gray-100);
+            border-radius: var(--radius-md);
+        }
+
+        .structure-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        .structure-percent {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            font-family: var(--font-mono);
+            margin-left: var(--space-2);
+        }
+
+        .structure-note-text {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            margin-top: var(--space-3);
+            font-style: italic;
+        }
+
+        .coil-note {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+
+        @media (max-width: 768px) {
+            .structure-percentages {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .structure-comparison {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+            }
+
+            .structure-divider {
+                display: none;
+            }
+        }
+
         .viewer-card {
             background: white;
             border: 1px solid var(--gray-200);
@@ -1143,9 +1581,22 @@
                                     <tr>
                                         <td class="track-label-cell">
                                             <div class="track-label-wrapper">
-                                                <span class="track-name">Modified Residue</span>
+                                                <span class="track-name">Bioactive Peptide</span>
                                                 <span class="info-icon">i</span>
-                                                <span class="track-tooltip">Post-translational modifications (PTMs)</span>
+                                                <span class="track-tooltip">Peptide fragments released from protein</span>
+                                            </div>
+                                        </td>
+                                        <td class="track-content">
+                                            <nightingale-track id="peptide" layout="non-overlapping" min-width="900" height="30" length="{{SEQUENCE_LENGTH}}" display-start="1" display-end="{{SEQUENCE_LENGTH}}" margin-color="white" highlight-event="onmouseover"></nightingale-track>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="track-label-cell">
+                                            <div class="track-label-wrapper">
+                                                <span class="track-name">PTM</span>
+                                                <span class="info-icon">i</span>
+                                                <span class="track-tooltip">Post-translational modifications</span>
                                             </div>
                                         </td>
                                         <td class="track-content">
@@ -1373,24 +1824,34 @@
 
         const processedFeatures = assignOffsetForOverlappingPTMs(rawProcessedFeatures);
         
+        // PTM type display names
+        const ptmTypeNames = {
+            'MOD_RES': 'Modified Residue',
+            'CARBOHYD': 'Glycosylation',
+            'CROSSLNK': 'Cross-link',
+            'LIPID': 'Lipidation',
+            'PROTEOMICS_PTM': 'Proteomics PTM',
+            'PHOSPHO': 'Phosphorylation',
+            'UBIQUIT': 'Ubiquitination',
+            'SUMO': 'Sumoylation',
+            'ACETYL': 'Acetylation',
+            'NITRO': 'Nitrosylation',
+            'HYDROXY': 'Hydroxylation',
+            'ADPRIB': 'ADP-ribosylation',
+            'FARNESL': 'Farnesylation',
+            'PALMI': 'Palmitoylation',
+            'GPI': 'GPI-anchor',
+            'NEDDYL': 'Neddylation',
+            'INIT_MET': 'Initiator Methionine'
+        };
+
         // Helper function to get all PTM features EXCEPT disulfides
         function getAllPTMFeaturesExceptDisulfides(allFeatures) {
-            // Map PTM feature types to display names
-            const ptmTypeNames = {
-                'MOD_RES': 'Modified Residue',
-                'CARBOHYD': 'Glycosylation',
-                'CROSSLNK': 'Cross-link',
-                'LIPID': 'Lipidation'
-            };
-
             const ptmFeatures = allFeatures.filter(feature => {
-                // Get all PTMs EXCEPT DISULFID (which has its own track)
                 return feature.category === 'PTM' && feature.type !== 'DISULFID';
             }).map(feature => ({
                 ...feature,
-                // Ensure type is set for display
                 displayType: ptmTypeNames[feature.type] || feature.type,
-                // Add ftId if not present
                 ftId: feature.ftId || ''
             }));
 
@@ -1412,6 +1873,7 @@
             'beta-strand': 'STRAND',
             'helix': 'HELIX',
             'turn': 'TURN',
+            'peptide': 'PEPTIDE',
             'mod-res': 'PTM_NO_DISULFID'  // All PTMs except disulfides
         };
 
@@ -1438,7 +1900,7 @@
                 console.log(`Track '${trackId}' (${featureType}): ${filteredFeatures.length} features`);
 
                 // Debug: show sample of PTM features if this is the PTM track
-                if (featureType === 'PTM' && filteredFeatures.length > 0) {
+                if (featureType === 'PTM_NO_DISULFID' && filteredFeatures.length > 0) {
                     console.log(`  → Sample PTM features:`, filteredFeatures.slice(0, 3));
                 }
 
