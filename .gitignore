@@ -11,3 +11,13 @@ dist/
 build/
 venv/
 .venv/
+
+# Generated files
+report_*.html
+protein_reports.db
+*.db
+
+# System files
+.DS_Store
+src/.DS_Store
+.env.local
